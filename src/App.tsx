@@ -9,7 +9,7 @@ import { ThemeProvider } from './theme/theme-provider'
 import { CssBaseline } from '@mui/material'
 import { Router } from './routes/sections'
 import { ToastContainer } from 'react-toastify';
-
+import 'react-toastify/dist/ReactToastify.css'
 
 function App() {
   const [queryClient] = useState(createQueryClient)

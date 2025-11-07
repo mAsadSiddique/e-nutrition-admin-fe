@@ -3,6 +3,10 @@ export type TLoginDetails = {
   password: string;
 };
 
+export type TForgotPasswordRequest = {
+  email: string;
+};
+
 export type TResetPassword = {
   password: string;
   confirmPassword: string;

@@ -12,6 +12,17 @@ import storage from '@src/utils/storage';
 // ----------------------------------------------------------------------
 
 const Login = lazy(() => import('@src/view').then(module => ({ default: module.SignInView })));
+const ForgotPassword = lazy(() =>
+  import('@src/view/Auth/ForgotPassword/ForgotPassword').then((module) => ({
+    default: module.ForgotPasswordView,
+  }))
+);
+const SetPassword = lazy(() =>
+  import('@src/view/Auth/SetPassword/SetPassword').then((module) => ({
+    default: module.SetPasswordView,
+  }))
+);
+const Admins = lazy(() => import('@src/view').then(module => ({ default: module.AdminListing })));
 const Categories = lazy(() => import('@src/view').then(module => ({ default: module.Categories })));
 const Blogging = lazy(() => import('@src/view').then(module => ({ default: module.Blogging })));
 
@@ -35,27 +46,20 @@ function ProtectedRoute({ children }: { children: React.ReactElement }) {
   const token = storage.getToken();
 
   if (!token) {
-    return <Navigate to="/login" replace />;
+    return <Navigate to="/" replace />;
   }
 
   return children;
 }
 
-// Public Route Component (redirects to dashboard if already authenticated)
+// Public Route Component
 function PublicRoute({ children }: { children: React.ReactElement }) {
-  const token = storage.getToken();
-
-  if (token) {
-    return <Navigate to="/dashboard" replace />;
-  }
-
   return children;
 }
 
 // Root Redirect Component
 function RootRedirect() {
-  const token = storage.getToken();
-  return <Navigate to={token ? "/dashboard" : "/login"} replace />;
+  return <Navigate to="/" replace />;
 }
 
 export function Router() {
@@ -72,8 +76,20 @@ export function Router() {
       ),
       children: [
         {
+          path: '/',
+          element: <Login />
+        },
+        {
           path: '/login',
           element: <Login />
+        },
+        {
+          path: '/forgot-password',
+          element: <ForgotPassword />
+        },
+        {
+          path: '/set-password',
+          element: <SetPassword />
         },
       ],
     },
@@ -91,7 +107,11 @@ export function Router() {
       children: [
         {
           index: true,
-          element: <Categories />,
+          element: <Admins />,
+        },
+        {
+          path: 'admins',
+          element: <Admins />,
         },
         {
           path: 'categories',
@@ -102,10 +122,6 @@ export function Router() {
           element: <Blogging />,
         },
       ],
-    },
-    {
-      path: '/',
-      element: <RootRedirect />,
     },
     {
       path: '*',

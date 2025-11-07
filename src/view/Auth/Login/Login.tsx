@@ -1,121 +1,158 @@
-import { useState, useCallback } from 'react';
+import { useState } from 'react';
 
+import Alert from '@mui/material/Alert';
 import Box from '@mui/material/Box';
+import Card from '@mui/material/Card';
 import Link from '@mui/material/Link';
-import Divider from '@mui/material/Divider';
+import Stack from '@mui/material/Stack';
 import TextField from '@mui/material/TextField';
 import IconButton from '@mui/material/IconButton';
 import Typography from '@mui/material/Typography';
-// import LoadingButton from '@mui/lab/LoadingButton';
 import InputAdornment from '@mui/material/InputAdornment';
+import Button from '@mui/material/Button';
+import CircularProgress from '@mui/material/CircularProgress';
+import { useFormik } from 'formik';
+import * as Yup from 'yup';
 
-import { useRouter } from '@src/routes/hooks';
 import storage from '@src/utils/storage';
+import { useLoginProfile } from '@src/services/profile';
+import { RouterLink } from '@src/routes/components';
 
 import { Iconify } from '@src/components/iconify';
-import { Button } from '@mui/material';
+import { useUserProfileHandler } from '@src/store/profile/hook';
+import { toast } from 'react-toastify';
+import { StaticRoutes, USER_TYPE } from '@src/utils/enums';
+import { useRouter } from '@src/routes/hooks';
+import { onError } from '@src/utils/error';
 
 // ----------------------------------------------------------------------
 
+const loginValidationSchema = Yup.object({
+    email: Yup.string().email('Enter a valid email address').required('Email is required'),
+    password: Yup.string().required('Password is required'),
+});
+
 export function SignInView() {
     const router = useRouter();
+    const { onSetProfile } = useUserProfileHandler()
 
     const [showPassword, setShowPassword] = useState(false);
+    const { mutateAsync: loginAdmin, isPending } = useLoginProfile();
 
-    const handleSignIn = useCallback(() => {
-        // Save token to localStorage after successful login
-        // In a real app, you would get this from the API response
-        const mockToken = 'mock-auth-token-' + Date.now();
-        storage.setToken(mockToken);
-        
-        // Redirect to dashboard
-        router.push('/dashboard');
-    }, [router]);
+    const formik = useFormik<{
+        email: string;
+        password: string;
+    }>({
+        initialValues: {
+            email: '',
+            password: '',
+        },
+        validationSchema: loginValidationSchema,
+        onSubmit: async (values, { resetForm }) => {
+            await loginAdmin(values, {
+                onSuccess: (data) => {
+                    storage.setToken(data?.data?.jwtToken)
+                    onSetProfile(data?.data?.user)
+                    toast.success('Logged in successfully')
+                    router.push(StaticRoutes.CATEGORIES_LISTING)
+                    resetForm()
+                },
+                onError
+            });
 
-    const renderForm = (
-        <Box display="flex" flexDirection="column" alignItems="flex-end">
-            <TextField
-                fullWidth
-                name="email"
-                label="Email address"
-                defaultValue="hello@gmail.com"
-                InputLabelProps={{ shrink: true }}
-                sx={{ mb: 3 }}
-            />
+        },
+    });
 
-            <Link variant="body2" color="inherit" sx={{ mb: 1.5 }}>
-                Forgot password?
-            </Link>
+    const { values, touched, errors, handleChange, handleBlur, handleSubmit, status } = formik;
 
-            <TextField
-                fullWidth
-                name="password"
-                label="Password"
-                defaultValue="@demo1234"
-                InputLabelProps={{ shrink: true }}
-                type={showPassword ? 'text' : 'password'}
-                InputProps={{
-                    endAdornment: (
-                        <InputAdornment position="end">
-                            <IconButton onClick={() => setShowPassword(!showPassword)} edge="end">
-                                <Iconify icon={showPassword ? 'solar:eye-bold' : 'solar:eye-closed-bold'} />
-                            </IconButton>
-                        </InputAdornment>
-                    ),
-                }}
-                sx={{ mb: 3 }}
-            />
-
-            <Button
-                fullWidth
-                size="large"
-                type="submit"
-                color="inherit"
-                variant="contained"
-                onClick={handleSignIn}
-            >
-                Sign in
-            </Button>
-        </Box>
-    );
+    const formStatus = (typeof status === 'string' && status) || undefined;
 
     return (
-        <>
-            <Box gap={1.5} display="flex" flexDirection="column" alignItems="center" sx={{ mb: 5 }}>
-                <Typography variant="h5">Sign in</Typography>
-                <Typography variant="body2" color="text.secondary">
-                    Don’t have an account?
-                    <Link variant="subtitle2" sx={{ ml: 0.5 }}>
-                        Get started
-                    </Link>
-                </Typography>
-            </Box>
+        <Card
+            sx={{
+                p: 4,
+                width: '100%',
+                maxWidth: 450,
+                minWidth: { md: 450 },
+                borderRadius: '30px',
+                mx: 'auto',
+            }}
+        >
+            <Stack component="form" noValidate spacing={4} onSubmit={handleSubmit}>
+                {/* Header Section */}
+                <Stack spacing={1.5} alignItems="center">
+                    <Typography variant="h4" fontWeight={600}>
+                        Sign in
+                    </Typography>
+                </Stack>
 
-            {renderForm}
+                {formStatus ? (
+                    <Alert severity="error" variant="outlined">
+                        {formStatus}
+                    </Alert>
+                ) : null}
 
-            <Divider sx={{ my: 3, '&::before, &::after': { borderTopStyle: 'dashed' } }}>
-                <Typography
-                    variant="overline"
-                    sx={{ color: 'text.secondary', fontWeight: 'fontWeightMedium' }}
-                >
-                    OR
-                </Typography>
-            </Divider>
+                {/* Form Section */}
+                <Stack spacing={3}>
+                    <TextField
+                        fullWidth
+                        name="email"
+                        label="Email address"
+                        autoComplete="email"
+                        value={values.email}
+                        onChange={handleChange}
+                        onBlur={handleBlur}
+                        error={Boolean(touched.email && errors.email)}
+                        helperText={touched.email && errors.email}
+                    />
 
-            <Box gap={1} display="flex" justifyContent="center">
-                <IconButton color="inherit">
-                    <Iconify icon="logos:google-icon" />
-                </IconButton>
-                <IconButton color="inherit">
-                    <Iconify icon="eva:github-fill" />
-                </IconButton>
-                <IconButton color="inherit">
-                    <Iconify icon="ri:twitter-x-fill" />
-                </IconButton>
-            </Box>
-        </>
+                    <TextField
+                        fullWidth
+                        name="password"
+                        label="Password"
+                        autoComplete="current-password"
+                        type={showPassword ? 'text' : 'password'}
+                        value={values.password}
+                        onChange={handleChange}
+                        onBlur={handleBlur}
+                        error={Boolean(touched.password && errors.password)}
+                        helperText={touched.password && errors.password}
+                        InputProps={{
+                            endAdornment: (
+                                <InputAdornment position="end">
+                                    <IconButton onClick={() => setShowPassword((prev) => !prev)} edge="end">
+                                        <Iconify icon={showPassword ? 'solar:eye-bold' : 'solar:eye-closed-bold'} />
+                                    </IconButton>
+                                </InputAdornment>
+                            ),
+                        }}
+                    />
+
+                    <Box display="flex" justifyContent="flex-end">
+                        <Link
+                            component={RouterLink}
+                            href="/forgot-password"
+                            variant="body2"
+                            color="inherit"
+                            sx={{ cursor: 'pointer', fontWeight: 600 }}
+                        >
+                            Forgot password?
+                        </Link>
+                    </Box>
+
+                    <Button
+                        fullWidth
+                        size="large"
+                        type="submit"
+                        color="inherit"
+                        variant="contained"
+                        disabled={isPending}
+                        startIcon={isPending ? <CircularProgress color="inherit" size={20} /> : undefined}
+                    >
+                        {isPending ? 'Signing in...' : 'Sign in'}
+                    </Button>
+                </Stack>
+            </Stack>
+        </Card>
     );
 }
-
-
-// JbAU1xazR9b8G1a2Vf$t2t?=DW6J*LA?
