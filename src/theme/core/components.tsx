@@ -36,6 +36,29 @@ const MuiButton: Components<Theme>['MuiButton'] = {
   },
 };
 
+const createAutofillOverride = (theme: Theme) => ({
+  WebkitBoxShadow: `0 0 0px 1000px ${theme.vars.palette.common.white} inset !important`,
+  WebkitTextFillColor: `${theme.vars.palette.text.primary} !important`,
+  backgroundColor: `${theme.vars.palette.common.white} !important`,
+  caretColor: theme.vars.palette.text.primary,
+});
+
+const MuiCssBaseline: Components<Theme>['MuiCssBaseline'] = {
+  styleOverrides: (theme) => {
+    const autofill = createAutofillOverride(theme);
+
+    return {
+      body: {
+        '& input:-webkit-autofill': autofill,
+        '& input:-webkit-autofill:hover': autofill,
+        '& input:-webkit-autofill:focus': autofill,
+        '& textarea:-webkit-autofill': autofill,
+        '& select:-webkit-autofill': autofill,
+      },
+    };
+  },
+};
+
 const MuiCard: Components<Theme>['MuiCard'] = {
   styleOverrides: {
     root: ({ theme }) => ({
@@ -158,6 +181,7 @@ const MuiRadio: Components<Theme>['MuiRadio'] = {
 // ----------------------------------------------------------------------
 
 export const components = {
+  MuiCssBaseline,
   MuiCard,
   MuiLink,
   MuiPaper,

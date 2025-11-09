@@ -1,5 +1,5 @@
 export const StaticRoutes = {
-  LOGIN: "/login",
+  LOGIN: "/",
 
   // dashboard...
   CATEGORIES_LISTING: "/dashboard/categories",

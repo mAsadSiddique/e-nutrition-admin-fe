@@ -8,7 +8,7 @@ import { DialogActions } from '@mui/material';
 import { useUpdateAdminRole } from '@src/services';
 import { onError } from '@src/utils/error';
 import { toast } from 'react-toastify';
-import { ADMIN_ROLE } from '@src/constant/AdminRole';
+import { ADMIN_ROLE } from '@src/constant/adminRole';
 
 interface UpdateRole {
     open: boolean;

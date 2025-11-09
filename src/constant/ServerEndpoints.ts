@@ -4,8 +4,11 @@ export const SERVER_END_POINTS = {
   ADMIN_RESET_PASSWORD: "admin/reset/password",
 
   // admin...
-  ADMIN_LISTING: "admin",
+  ADMIN_LISTING: "admin/listing",
   ADD_ADMIN: "admin/add",
   BLOCK_UNBLOCK_ADMIN: "admin/block/toggle",
   UPDATE_ADMIN_ROLE: "admin/role",
+
+  // blog...
+  BLOG_LISTING: "blog",
 };

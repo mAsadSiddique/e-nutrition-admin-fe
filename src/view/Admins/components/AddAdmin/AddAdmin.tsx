@@ -9,18 +9,14 @@ import {
     MenuItem,
     Grid,
     Typography,
-    Box,
 } from '@mui/material';
 import { useFormik } from 'formik';
 import * as Yup from 'yup';
-import PersonIcon from '@mui/icons-material/Person';
-import EmailIcon from '@mui/icons-material/Email';
 import WorkOutlineIcon from '@mui/icons-material/WorkOutline';
 import SaveIcon from '@mui/icons-material/Save';
 
 import { onError } from '@src/utils/error';
 import { toast } from 'react-toastify';
-import type { TUser } from '@src/utils/types';
 import { useAddAdmin } from '@src/services';
 
 interface AddAdminModalProps {

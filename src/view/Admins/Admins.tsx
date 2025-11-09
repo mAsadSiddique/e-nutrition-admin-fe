@@ -43,40 +43,6 @@ import { AddAdmin } from './components/AddAdmin'
 import { ConfirmDialog } from '@src/components/elements'
 import { Pagination } from '@src/components/ui'
 
-const StyledSwitch = styled(Switch)(({ theme }) => ({
-  width: 50,
-  height: 28,
-  padding: 0,
-  '& .MuiSwitch-switchBase': {
-    padding: 2,
-    transitionDuration: '300ms',
-    '&.Mui-checked': {
-      transform: 'translateX(22px)',
-      color: '#fff',
-      '& + .MuiSwitch-track': {
-        background: 'linear-gradient(135deg, #1A5BEE, #1D9CEE)',
-        opacity: 1,
-        border: 0
-      }
-    }
-  },
-  '& .MuiSwitch-thumb': {
-    backgroundColor: '#fff',
-    width: 24,
-    height: 24,
-    boxShadow: '0 2px 4px rgba(0,0,0,0.3)',
-  },
-  '& .MuiSwitch-track': {
-    borderRadius: 28 / 2,
-    backgroundColor: theme.palette.mode === 'light' ? '#E5E7EB' : '#374151',
-    opacity: 1,
-    transition: theme.transitions.create(['background-color'], {
-      duration: 300
-    }),
-  }
-}));
-
-
 // Gradient button component with specified colors
 export const GradientButton = ({ children, ...props }: any) => (
   <Button

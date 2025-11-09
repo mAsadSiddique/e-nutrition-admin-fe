@@ -6,3 +6,4 @@ export type ApiResponse = {
 
 export * from "./profile";
 export * from "./admin";
+export * from "./blog";

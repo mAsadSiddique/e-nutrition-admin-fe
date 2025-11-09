@@ -15,6 +15,10 @@ import MenuItem, { menuItemClasses } from '@mui/material/MenuItem';
 import { useRouter, usePathname } from '@src/routes/hooks';
 
 import { _myAccount } from '@src/_mock';
+import { useProfileSelector } from '@src/store/profile/selector';
+import storage from '@src/utils/storage';
+import { toast } from 'react-toastify';
+import { StaticRoutes } from '@src/utils/enums';
 
 // ----------------------------------------------------------------------
 
@@ -31,6 +35,7 @@ export function AccountPopover({ data = [], sx, ...other }: AccountPopoverProps)
   const router = useRouter();
 
   const pathname = usePathname();
+  const profile = useProfileSelector() as any
 
   const [openPopover, setOpenPopover] = useState<HTMLButtonElement | null>(null);
 
@@ -49,6 +54,13 @@ export function AccountPopover({ data = [], sx, ...other }: AccountPopoverProps)
     },
     [handleClosePopover, router]
   );
+
+  const handleLogout = useCallback(() => {
+    handleClosePopover();
+    storage.clearToken();
+    toast.success('Sign-out successfully')
+    router.push(StaticRoutes.LOGIN);
+  }, [handleClosePopover, router]);
 
   return (
     <>
@@ -83,11 +95,11 @@ export function AccountPopover({ data = [], sx, ...other }: AccountPopoverProps)
       >
         <Box sx={{ p: 2, pb: 1.5 }}>
           <Typography variant="subtitle2" noWrap>
-            {_myAccount?.displayName}
+            {profile.userProfile?.firstName ? `${profile.userProfile?.firstName} ${profile.userProfile?.lastName}` : '----'}
           </Typography>
 
           <Typography variant="body2" sx={{ color: 'text.secondary' }} noWrap>
-            {_myAccount?.email}
+            {profile.userProfile?.role} Admin
           </Typography>
         </Box>
 
@@ -129,8 +141,8 @@ export function AccountPopover({ data = [], sx, ...other }: AccountPopoverProps)
         <Divider sx={{ borderStyle: 'dashed' }} />
 
         <Box sx={{ p: 1 }}>
-          <Button fullWidth color="error" size="medium" variant="text">
-            Logout
+          <Button fullWidth color="error" size="medium" variant="text" onClick={handleLogout}>
+            Sign-out
           </Button>
         </Box>
       </Popover>
