@@ -1,9 +1,11 @@
 import { axios } from "@src/config/axios";
 import { SERVER_END_POINTS } from "@src/constant";
+import type { ApiResponse } from "@src/utils/types";
 import type {
   TLoginDetails,
   TForgotPasswordRequest,
   TResetPassword,
+  TChangePassword,
 } from "@src/utils/types/profile";
 import { useMutation } from "@tanstack/react-query";
 
@@ -27,6 +29,14 @@ export const useResetPassword = () => {
   return useMutation({
     mutationFn: async (payload: TResetPassword) => {
       return await axios.post(SERVER_END_POINTS.ADMIN_RESET_PASSWORD, payload);
+    },
+  });
+};
+
+export const useChangePassword = () => {
+  return useMutation({
+    mutationFn: async (payload: TChangePassword): Promise<ApiResponse> => {
+      return await axios.put(SERVER_END_POINTS.CHANGE_PASSWORD, payload);
     },
   });
 };

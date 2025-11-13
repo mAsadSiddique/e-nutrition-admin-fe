@@ -80,7 +80,6 @@ export const GradientButton = ({ children, ...props }: any) => (
 export const AdminListing = () => {
   const theme = useTheme()
   const isMobile = useMediaQuery(theme.breakpoints.down('sm'))
-  const isTablet = useMediaQuery(theme.breakpoints.down('md'))
 
   const { handleClose, handleOpen, isOpen } = usePopOver()
   const { handleClose: closeAdminRole, handleOpen: openAdminRole, isOpen: isOpenAdminRole } = usePopOver()
@@ -90,14 +89,14 @@ export const AdminListing = () => {
   const { data: adminListing, isLoading, error } = useAdminListing()
   const { mutateAsync: blockUnblockAdminToggle, isPending: toggleLoading } = useBlockUnblockAdminToggle()
   const { userProfile: currentAdmin } = useProfileSelector()
-
+  console.log('currentAdmin: ', currentAdmin)
   const [selectedAdmin, setSelectedAdmin] = useState<TUser>({} as TUser)
 
   // Safe access to adminListing data
   const safeAdminListing = adminListing?.admins || []
 
   // Check if the selected admin is the current user
-  const isCurrentUser = (admin: TUser) => admin._id === currentAdmin?._id
+  const isCurrentUser = (admin: TUser) => admin.id === currentAdmin?.id
 
   // Handle role update with self-check
   const handleRoleUpdate = (admin: TUser) => {
@@ -359,7 +358,7 @@ export const AdminListing = () => {
   }
 
   const handleToggleBlock = () => {
-    blockUnblockAdminToggle({ id: selectedAdmin._id }, {
+    blockUnblockAdminToggle({ id: selectedAdmin.id }, {
       onSuccess: (data) => {
         toast.success(data.message)
         handleBlockUnblockToggleClose()
@@ -444,7 +443,7 @@ export const AdminListing = () => {
           // Mobile card view
           <Box>
             {paginatedAdmins.map((admin: TUser) => (
-              <MobileAdminCard key={admin._id} admin={admin} />
+              <MobileAdminCard key={admin.id} admin={admin} />
             ))}
           </Box>
         ) : (
@@ -515,7 +514,7 @@ export const AdminListing = () => {
                     const roleColors = getRoleColor(admin.role)
 
                     return (
-                      <TableRow key={admin._id} sx={{ '&:hover': { backgroundColor: '#F9FAFB' } }}>
+                      <TableRow key={admin.id} sx={{ '&:hover': { backgroundColor: '#F9FAFB' } }}>
                         <TableCell sx={{ py: { sm: 1.5, md: 2 } }}>
                           <Stack direction="row" alignItems="center" spacing={2}>
                             <Avatar

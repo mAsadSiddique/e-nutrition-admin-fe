@@ -1,2 +1,2 @@
-export * from "./ServerEndpoints";
-export * from "./queryKey";
+export * from "./server-end-points";
+export * from "./query-key";

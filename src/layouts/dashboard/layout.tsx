@@ -22,6 +22,7 @@ import { HeaderSection } from '../core/header-section';
 import { AccountPopover } from '../components/account-popover';
 import { LanguagePopover } from '../components/language-popover';
 import { NotificationsPopover } from '../components/notifications-popover';
+import { StaticRoutes } from '@src/utils/enums';
 
 // ----------------------------------------------------------------------
 
@@ -85,20 +86,20 @@ export function DashboardLayout({ sx, children, header }: DashboardLayoutProps) 
                 {/* <NotificationsPopover data={_notifications} /> */}
                 <AccountPopover
                   data={[
-                    {
-                      label: 'Home',
-                      href: '/',
-                      icon: <Iconify width={22} icon="solar:home-angle-bold-duotone" />,
-                    },
+                    // {
+                    //   label: 'Home',
+                    //   href: '/',
+                    //   icon: <Iconify width={22} icon="solar:home-angle-bold-duotone" />,
+                    // },
                     {
                       label: 'Profile',
-                      href: '#',
-                      icon: <Iconify width={22} icon="solar:shield-keyhole-bold-duotone" />,
+                      href: StaticRoutes.ADMIN_PROFILE,
+                      icon: <Iconify width={22} icon="solar:user-bold-duotone" />,
                     },
                     {
-                      label: 'Settings',
-                      href: '#',
-                      icon: <Iconify width={22} icon="solar:settings-bold-duotone" />,
+                      label: 'Change Password',
+                      href: StaticRoutes.ADMIN_CHANGE_PASSWORD,
+                      icon: <Iconify width={22} icon="solar:lock-password-bold-duotone" />,
                     },
                   ]}
                 />

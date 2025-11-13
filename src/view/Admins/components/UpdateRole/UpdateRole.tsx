@@ -8,7 +8,7 @@ import { DialogActions } from '@mui/material';
 import { useUpdateAdminRole } from '@src/services';
 import { onError } from '@src/utils/error';
 import { toast } from 'react-toastify';
-import { ADMIN_ROLE } from '@src/constant/adminRole';
+import { ADMIN_ROLE } from '@src/constant/admin-role';
 
 interface UpdateRole {
     open: boolean;
@@ -23,7 +23,7 @@ const validationSchema = Yup.object({
 export const UpdateRole: FC<UpdateRole> = ({ editAdminDetails, onClose, open }) => {
 
     const { mutateAsync: updateAdminRole, isPending } = useUpdateAdminRole()
-    const isEditAdmin = !!editAdminDetails?._id
+    const isEditAdmin = !!editAdminDetails?.id
 
     const formik = useFormik<{ role: string }>({
         initialValues: {
@@ -32,7 +32,7 @@ export const UpdateRole: FC<UpdateRole> = ({ editAdminDetails, onClose, open }) 
         enableReinitialize: true,
         validationSchema,
         onSubmit: async (values, { resetForm }) => {
-            await updateAdminRole({ ...values, id: editAdminDetails._id }, {
+            await updateAdminRole({ ...values, id: editAdminDetails.id }, {
                 onSuccess: (data) => {
                     toast.success(data?.message)
                     onClose()

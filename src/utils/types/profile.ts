@@ -24,7 +24,7 @@ export type TChangePassword = {
 type Role = "Super" | "Admin" | "User";
 
 export type TUser = {
-  _id: string;
+  id: string;
   email: string;
   password: string;
   isEmailVerified: boolean;
@@ -33,10 +33,8 @@ export type TUser = {
   age: number;
   firstName: string;
   lastName: string;
-  userType: "doctor" | "patient" | "admin";
   role: Role;
   createdAt: string;
   address: string;
   updatedAt: string;
-  __v: number;
 };

@@ -1,5 +1,6 @@
 import { axios } from "@src/config/axios";
 import { QUERY_KEY, SERVER_END_POINTS } from "@src/constant";
+import storage from "@src/utils/storage";
 import type { ApiResponse, TAddAdminDetails, TUser } from "@src/utils/types";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 
@@ -63,6 +64,32 @@ export const useUpdateAdminRole = () => {
       queryClient.invalidateQueries({
         queryKey: [QUERY_KEY.ADMIN_LISTING],
       });
+    },
+  });
+};
+
+export const useGetAdminProfile = () => {
+  const jwt = storage.getToken();
+  return useQuery({
+    queryKey: [QUERY_KEY.ADMIN_PROFILE],
+    queryFn: async () => {
+      return await axios.get(SERVER_END_POINTS.ADMIN_PROFILE);
+    },
+    select: (data) => {
+      return data?.data as TAddAdminDetails;
+    },
+    enabled: !!jwt,
+  });
+};
+
+// update admin profile...
+export const useUpdateAdminProfile = () => {
+  return useMutation({
+    mutationFn: async (userUpdateDetails: any) => {
+      return await axios.put(
+        SERVER_END_POINTS.ADMIN_PROFILE,
+        userUpdateDetails
+      );
     },
   });
 };
