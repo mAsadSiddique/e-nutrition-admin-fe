@@ -1,4 +1,4 @@
-import React, { useMemo, useState } from 'react';
+import React, { useMemo, useState, useEffect } from 'react';
 
 import Box from '@mui/material/Box';
 import Card from '@mui/material/Card';
@@ -65,14 +65,34 @@ const flattenCategories = (
 export const Categories = () => {
     const { data: categoryData, isLoading, isError, isFetching, refetch } = useCategoryListing();
     const [isAddCategoryOpen, setIsAddCategoryOpen] = useState(false);
+    const [isAddSubcategoryOpen, setIsAddSubcategoryOpen] = useState(false);
     const [isEditCategoryOpen, setIsEditCategoryOpen] = useState(false);
     const [isRemoveCategoryOpen, setIsRemoveCategoryOpen] = useState(false);
     const [selectedCategory, setSelectedCategory] = useState<TCategory | null>(null);
+    const [parentCategoryForSubcategory, setParentCategoryForSubcategory] = useState<TCategory | null>(null);
+    const [expandedCategories, setExpandedCategories] = useState<Set<string | number>>(new Set());
     const { mutateAsync: removeCategory, isPending: isRemoving } = useRemoveCategory();
     const categories = useMemo(() => categoryData?.categories ?? [], [categoryData]);
     const totalCount = categoryData?.count ?? categories.length;
     const tableRows = useMemo(() => flattenCategories(categories), [categories]);
     const isEmpty = !isLoading && !isError && tableRows.length === 0;
+
+    // Expand all parent categories by default when data loads
+    useEffect(() => {
+        if (categories.length > 0 && expandedCategories.size === 0) {
+            const initialExpanded = new Set<string | number>();
+            const expandAllParents = (cats: TCategory[]) => {
+                cats.forEach((cat) => {
+                    if (cat.children && cat.children.length > 0) {
+                        initialExpanded.add(cat.id);
+                        expandAllParents(cat.children);
+                    }
+                });
+            };
+            expandAllParents(categories);
+            setExpandedCategories(initialExpanded);
+        }
+    }, [categories, expandedCategories.size]);
 
     const handleEdit = (category: TCategory) => {
         setSelectedCategory(category);
@@ -84,8 +104,22 @@ export const Categories = () => {
         setIsRemoveCategoryOpen(true);
     };
 
-    const handleOpenAddCategory = () => setIsAddCategoryOpen(true);
-    const handleCloseAddCategory = () => setIsAddCategoryOpen(false);
+    const handleOpenAddCategory = () => {
+        setParentCategoryForSubcategory(null);
+        setIsAddCategoryOpen(true);
+    };
+    const handleCloseAddCategory = () => {
+        setIsAddCategoryOpen(false);
+        setParentCategoryForSubcategory(null);
+    };
+    const handleOpenAddSubcategory = (category: TCategory) => {
+        setParentCategoryForSubcategory(category);
+        setIsAddSubcategoryOpen(true);
+    };
+    const handleCloseAddSubcategory = () => {
+        setIsAddSubcategoryOpen(false);
+        setParentCategoryForSubcategory(null);
+    };
     const handleCloseEditCategory = () => {
         setIsEditCategoryOpen(false);
         setSelectedCategory(null);
@@ -94,13 +128,24 @@ export const Categories = () => {
         setIsRemoveCategoryOpen(false);
         setSelectedCategory(null);
     };
+    const toggleCategoryExpansion = (categoryId: string | number) => {
+        setExpandedCategories((prev) => {
+            const newSet = new Set(prev);
+            if (newSet.has(categoryId)) {
+                newSet.delete(categoryId);
+            } else {
+                newSet.add(categoryId);
+            }
+            return newSet;
+        });
+    };
 
     const handleConfirmRemove = async () => {
         if (!selectedCategory) {
             return;
         }
 
-        await removeCategory(selectedCategory.id, {
+        await removeCategory({ id: +selectedCategory.id }, {
             onSuccess: (data) => {
                 toast.success(data.message);
                 handleCloseRemoveCategory();
@@ -109,9 +154,41 @@ export const Categories = () => {
         });
     };
 
+    // Filter rows based on parent expansion state
+    const visibleRows = useMemo(() => {
+        return tableRows.filter((row) => {
+            // Always show top-level categories
+            if (row.depth === 0) return true;
+
+            // For child categories, check if all parent levels are expanded
+            let currentDepth = row.depth;
+            let currentParentName = row.parentName;
+
+            while (currentDepth > 0) {
+                const parentRow = tableRows.find(
+                    (r) => r.depth === currentDepth - 1 && r.name === currentParentName
+                );
+
+                if (!parentRow) return true; // If parent not found, show it (shouldn't happen)
+                if (!expandedCategories.has(parentRow.id)) return false; // If parent is collapsed, hide child
+
+                // Move up one level
+                currentDepth = parentRow.depth;
+                currentParentName = parentRow.parentName;
+            }
+
+            return true;
+        });
+    }, [tableRows, expandedCategories]);
+
     return (
         <DashboardContent>
-            <AddCategory open={isAddCategoryOpen} onClose={handleCloseAddCategory} />
+            <AddCategory open={isAddCategoryOpen} onClose={handleCloseAddCategory} parentCategory={null} />
+            <AddCategory
+                open={isAddSubcategoryOpen}
+                onClose={handleCloseAddSubcategory}
+                parentCategory={parentCategoryForSubcategory}
+            />
             <UpdateCategory open={isEditCategoryOpen} onClose={handleCloseEditCategory} category={selectedCategory} />
             <ConfirmDialog
                 title="Remove Category"
@@ -140,7 +217,9 @@ export const Categories = () => {
                         Manage your product categories and organize your inventory
                     </Typography>
                     <Typography variant="caption" sx={{ color: 'text.disabled', display: 'block', mt: 1 }}>
-                        {isFetching ? 'Refreshing categories…' : `Showing ${tableRows.length} of ${totalCount} categories`}
+                        {isFetching
+                            ? 'Refreshing categories…'
+                            : `Showing ${visibleRows.length} of ${totalCount} categories${expandedCategories.size > 0 ? ' (some collapsed)' : ''}`}
                     </Typography>
                 </Box>
                 <Button
@@ -223,21 +302,121 @@ export const Categories = () => {
                                 ) : null}
 
                                 {!isLoading && !isError
-                                    ? tableRows.map((row, index) => {
+                                    ? visibleRows.map((row, index) => {
                                         const identifier = `${row.id}-${index}`;
+                                        const isExpanded = expandedCategories.has(row.id);
+                                        const hasChildren = row.childrenCount > 0;
+                                        const depthLevel = row.depth;
+                                        const isTopLevel = depthLevel === 0;
+
                                         return (
-                                            <TableRow key={identifier} hover>
-                                                <TableCell>{row.id}</TableCell>
+                                            <TableRow
+                                                key={identifier}
+                                                hover
+                                                sx={{
+                                                    backgroundColor:
+                                                        depthLevel === 0
+                                                            ? 'transparent'
+                                                            : depthLevel === 1
+                                                                ? 'action.hover'
+                                                                : depthLevel === 2
+                                                                    ? 'action.selected'
+                                                                    : 'grey.50',
+                                                    '&:hover': {
+                                                        backgroundColor: 'action.selected',
+                                                    },
+                                                }}
+                                            >
                                                 <TableCell>
-                                                    <Typography
-                                                        variant="subtitle2"
-                                                        sx={{
-                                                            fontWeight: row.depth === 0 ? 600 : 500,
-                                                            pl: row.depth * 2,
-                                                        }}
-                                                    >
-                                                        {row.name}
-                                                    </Typography>
+                                                    <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
+                                                        {hasChildren && (
+                                                            <IconButton
+                                                                size="small"
+                                                                onClick={() => toggleCategoryExpansion(row.id)}
+                                                                sx={{ p: 0.5 }}
+                                                            >
+                                                                <Iconify
+                                                                    icon={isExpanded ? 'eva:arrow-ios-downward-fill' : 'eva:arrow-ios-forward-fill'}
+                                                                    width={18}
+                                                                />
+                                                            </IconButton>
+                                                        )}
+                                                        {!hasChildren && <Box sx={{ width: 26 }} />}
+                                                        <Typography variant="body2">{row.id}</Typography>
+                                                    </Box>
+                                                </TableCell>
+                                                <TableCell>
+                                                    <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
+                                                        <Box
+                                                            sx={{
+                                                                display: 'flex',
+                                                                alignItems: 'center',
+                                                                pl: depthLevel * 2.5,
+                                                                position: 'relative',
+                                                                width: '100%',
+                                                            }}
+                                                        >
+                                                            {depthLevel > 0 && (
+                                                                <Box
+                                                                    sx={{
+                                                                        position: 'absolute',
+                                                                        left: 0,
+                                                                        display: 'flex',
+                                                                        alignItems: 'center',
+                                                                        gap: 0.25,
+                                                                    }}
+                                                                >
+                                                                    {Array.from({ length: depthLevel }).map((_, idx) => (
+                                                                        <Box
+                                                                            key={idx}
+                                                                            sx={{
+                                                                                display: 'flex',
+                                                                                alignItems: 'center',
+                                                                                width: 20,
+                                                                                justifyContent: 'center',
+                                                                            }}
+                                                                        >
+                                                                            {idx === depthLevel - 1 ? (
+                                                                                <Iconify
+                                                                                    icon="eva:corner-down-right-fill"
+                                                                                    width={16}
+                                                                                    sx={{
+                                                                                        color: 'primary.main',
+                                                                                    }}
+                                                                                />
+                                                                            ) : (
+                                                                                <Box
+                                                                                    sx={{
+                                                                                        width: 1,
+                                                                                        height: 20,
+                                                                                        backgroundColor: 'divider',
+                                                                                    }}
+                                                                                />
+                                                                            )}
+                                                                        </Box>
+                                                                    ))}
+                                                                </Box>
+                                                            )}
+                                                            <Typography
+                                                                variant="subtitle2"
+                                                                sx={{
+                                                                    fontWeight: isTopLevel ? 600 : depthLevel === 1 ? 500 : depthLevel === 2 ? 400 : 300,
+                                                                    color: isTopLevel
+                                                                        ? 'text.primary'
+                                                                        : depthLevel === 1
+                                                                            ? 'text.secondary'
+                                                                            : 'text.disabled',
+                                                                    fontSize: isTopLevel
+                                                                        ? '0.875rem'
+                                                                        : depthLevel === 1
+                                                                            ? '0.875rem'
+                                                                            : '0.8125rem',
+                                                                }}
+                                                            >
+                                                                {row.name}
+                                                            </Typography>
+                                                        </Box>
+                                                    </Box>
                                                 </TableCell>
                                                 <TableCell>
                                                     <Typography variant="body2" sx={{ color: 'text.secondary' }}>
@@ -245,12 +424,33 @@ export const Categories = () => {
                                                     </Typography>
                                                 </TableCell>
                                                 <TableCell>
-                                                    <Typography variant="body2" sx={{ color: 'text.secondary' }}>
-                                                        {row.childrenCount}
-                                                    </Typography>
+                                                    <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
+                                                        <Typography variant="body2" sx={{ color: 'text.secondary' }}>
+                                                            {row.childrenCount}
+                                                        </Typography>
+                                                        {hasChildren && (
+                                                            <Typography variant="caption" sx={{ color: 'text.disabled' }}>
+                                                                {isExpanded ? 'expanded' : 'collapsed'}
+                                                            </Typography>
+                                                        )}
+                                                    </Box>
                                                 </TableCell>
                                                 <TableCell align="right">
                                                     <Box sx={{ display: 'flex', justifyContent: 'flex-end', gap: 0.5 }}>
+                                                        <Tooltip title={depthLevel === 0 ? 'Add Subcategory' : `Add ${depthLevel === 1 ? 'Sub-subcategory' : 'Nested Category'}`}>
+                                                            <IconButton
+                                                                size="small"
+                                                                color="primary"
+                                                                onClick={() => handleOpenAddSubcategory(row.category)}
+                                                                sx={{
+                                                                    '&:hover': {
+                                                                        backgroundColor: 'primary.lighter',
+                                                                    },
+                                                                }}
+                                                            >
+                                                                <Iconify icon="mingcute:add-line" width={20} />
+                                                            </IconButton>
+                                                        </Tooltip>
                                                         <Tooltip title="Edit">
                                                             <IconButton
                                                                 size="small"

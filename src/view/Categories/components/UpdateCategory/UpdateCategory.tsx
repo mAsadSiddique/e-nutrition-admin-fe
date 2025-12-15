@@ -1,4 +1,4 @@
-import React, { useEffect } from 'react';
+import React, { useMemo } from 'react';
 
 import SaveIcon from '@mui/icons-material/Save';
 import {
@@ -32,11 +32,16 @@ const validationSchema = Yup.object({
 export const UpdateCategory: React.FC<UpdateCategoryProps> = ({ open, onClose, category }) => {
     const { mutateAsync: updateCategory, isPending } = useUpdateCategory();
 
-    const formik = useFormik<TUpdateCategoryPayload>({
-        initialValues: {
+    const initialValues = useMemo<TUpdateCategoryPayload>(
+        () => ({
             id: category?.id ?? '',
             name: category?.name ?? '',
-        },
+        }),
+        [category]
+    );
+
+    const formik = useFormik<TUpdateCategoryPayload>({
+        initialValues,
         enableReinitialize: true,
         validationSchema,
         onSubmit: async (values) => {
@@ -49,15 +54,6 @@ export const UpdateCategory: React.FC<UpdateCategoryProps> = ({ open, onClose, c
             });
         },
     });
-
-    useEffect(() => {
-        if (category) {
-            formik.setValues({
-                id: category.id,
-                name: category.name,
-            });
-        }
-    }, [category, formik]);
 
     const handleClose = () => {
         formik.resetForm();

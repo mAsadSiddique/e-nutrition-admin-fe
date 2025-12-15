@@ -13,7 +13,10 @@ export const SERVER_END_POINTS = {
   UPDATE_ADMIN_ROLE: "admin/role",
 
   // blog...
-  BLOG_LISTING: "blog",
+  BLOG_LISTING: "admin/blog",
+  BLOG_CREATE: "admin/blog/create",
+  BLOG_UPDATE: "admin/blog/update",
+  BLOG_DELETE: "admin/blog/delete",
 
   // categories...
   CATEGORIES_LISTING: "category",

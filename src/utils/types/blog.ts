@@ -28,10 +28,13 @@ export type TBlogListResponse = {
 };
 
 export type TCreateBlogPayload = {
+  // Shared fields for create & update
   title: string;
   subheading?: string;
   slug: string;
   category: string;
+  // Backend expects numeric category IDs array
+  categoryIds?: number[];
   status: TBlogStatus;
   excerpt: string;
   tags: string[];
@@ -42,4 +45,13 @@ export type TCreateBlogPayload = {
   readingTime?: number | null;
   publishedAt?: string | null;
 };
+
+export type TUpdateBlogPayload = TCreateBlogPayload & {
+  id: string;
+};
+
+export type TDeleteBlogPayload = {
+  id: string;
+};
+
 

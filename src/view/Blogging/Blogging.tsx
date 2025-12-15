@@ -1,4 +1,4 @@
-import React, { useMemo } from "react";
+import { useMemo } from "react";
 
 import dayjs from "dayjs";
 
@@ -24,7 +24,7 @@ import { useNavigate } from "react-router-dom";
 import { Iconify } from "@src/components/iconify";
 import { Scrollbar } from "@src/components/scrollbar";
 import { DashboardContent } from "@src/layouts/dashboard/main";
-import { useBlogListing } from "@src/services";
+import { useBlogListing, useDeleteBlog } from "@src/services";
 import type { TBlog, TBlogStatus } from "@src/utils/types";
 
 // ----------------------------------------------------------------------
@@ -57,6 +57,8 @@ export const Blogging = () => {
     page: 1,
   });
 
+  const { mutateAsync: deleteBlog, isPending: isDeleting } = useDeleteBlog();
+
   const blogs = useMemo(() => data?.blogs ?? [], [data]);
   const totalCount = data?.count ?? blogs.length;
   const isEmpty = !isLoading && !isError && blogs.length === 0;
@@ -67,8 +69,20 @@ export const Blogging = () => {
   };
 
   const handleDelete = (blog: TBlog) => {
-    console.log("Delete blog:", blog.id);
-    // TODO: Implement delete functionality
+    if (!blog.id) return;
+
+    const confirmed = window.confirm("Are you sure you want to delete this blog post?");
+    if (!confirmed) return;
+
+    void deleteBlog(
+      { id: blog.id },
+      {
+        onError: () => {
+          // eslint-disable-next-line no-console
+          console.error("Failed to delete blog", blog.id);
+        },
+      }
+    );
   };
 
   const handleView = (blog: TBlog) => {
@@ -94,7 +108,9 @@ export const Blogging = () => {
             Create, manage, and publish engaging blog content for your audience
           </Typography>
           <Typography variant="caption" sx={{ color: "text.disabled", display: "block", mt: 1 }}>
-            {isFetching ? "Refreshing data…" : `Showing ${blogs.length} of ${totalCount} posts`}
+            {isFetching || isDeleting
+              ? "Refreshing data…"
+              : `Showing ${blogs.length} of ${totalCount} posts`}
           </Typography>
         </Box>
         <Button

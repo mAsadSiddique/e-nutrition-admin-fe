@@ -16,7 +16,7 @@ export const BlogCreateView = () => {
   const navigate = useNavigate();
   const [previewData, setPreviewData] = useState<BlogPreviewData | null>(null);
   const [isPreviewOpen, setIsPreviewOpen] = useState(false);
-
+  console.log('previewData: ', previewData?.content)
   const handleCancel = () => {
     navigate(-1);
   };

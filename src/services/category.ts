@@ -9,9 +9,7 @@ import type {
 } from "@src/utils/types";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 
-const normalizeCategoryResponse = (
-  payload: unknown
-): TCategoryListResponse => {
+const normalizeCategoryResponse = (payload: unknown): TCategoryListResponse => {
   if (!payload) {
     return { count: 0, categories: [] };
   }
@@ -94,10 +92,10 @@ export const useRemoveCategory = () => {
   const queryClient = useQueryClient();
 
   return useMutation({
-    mutationFn: async (categoryId: number | string): Promise<ApiResponse> => {
-      return await axios.delete(SERVER_END_POINTS.CATEGORY_REMOVE, {
-        data: { id: categoryId },
-      });
+    mutationFn: async (id: { id: number }): Promise<ApiResponse> => {
+      return await axios.delete(
+        `${SERVER_END_POINTS.CATEGORY_REMOVE}?id=${id.id}`
+      );
     },
     onSuccess: () => {
       queryClient.invalidateQueries({

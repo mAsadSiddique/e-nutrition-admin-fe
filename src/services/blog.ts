@@ -1,6 +1,12 @@
 import { axios } from "@src/config/axios";
 import { QUERY_KEY, SERVER_END_POINTS } from "@src/constant";
-import type { ApiResponse, TBlogListResponse, TCreateBlogPayload } from "@src/utils/types";
+import type {
+  ApiResponse,
+  TBlogListResponse,
+  TCreateBlogPayload,
+  TUpdateBlogPayload,
+  TDeleteBlogPayload,
+} from "@src/utils/types";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 
 type BlogListParams = {
@@ -15,8 +21,7 @@ const createBlogFormData = (payload: TCreateBlogPayload) => {
 
   formData.append("title", payload.title);
   formData.append("slug", payload.slug);
-  formData.append("category", payload.category);
-  formData.append("status", payload.status);
+  formData.append("status", payload.status.toLowerCase());
   formData.append("excerpt", payload.excerpt);
   formData.append("content", payload.content);
 
@@ -24,15 +29,19 @@ const createBlogFormData = (payload: TCreateBlogPayload) => {
     formData.append("subheading", payload.subheading);
   }
 
-  if (payload.tags?.length) {
-    payload.tags.forEach((tag) => {
-      formData.append("tags[]", tag);
+  if (payload.categoryIds?.length) {
+    payload.categoryIds.forEach((rawId) => {
+      const numericId = Number(rawId);
+      if (!Number.isNaN(numericId)) {
+        formData.append("categoryIds", String(numericId));
+      }
     });
   }
 
-  if (payload.coverImage) {
-    formData.append("coverImage", payload.coverImage);
-  }
+  // if (payload.tags?.length) {
+  //   // Backend expects `tags` as an array field; send a JSON array string
+  //   formData.append("tags", JSON.stringify(payload.tags));
+  // }
 
   if (typeof payload.isFeatured === "boolean") {
     formData.append("isFeatured", String(payload.isFeatured));
@@ -76,7 +85,7 @@ export const useCreateBlog = () => {
     mutationFn: async (payload: TCreateBlogPayload): Promise<ApiResponse> => {
       const requestPayload = createBlogFormData(payload);
 
-      return await axios.post(SERVER_END_POINTS.BLOG_LISTING, requestPayload);
+      return await axios.post(SERVER_END_POINTS.BLOG_CREATE, requestPayload);
     },
     onSuccess: () => {
       queryClient.invalidateQueries({
@@ -86,3 +95,41 @@ export const useCreateBlog = () => {
   });
 };
 
+export const useUpdateBlog = () => {
+  const queryClient = useQueryClient();
+
+  return useMutation({
+    mutationFn: async (payload: TUpdateBlogPayload): Promise<ApiResponse> => {
+      const { id, ...rest } = payload;
+      const requestPayload = createBlogFormData(rest);
+
+      // assuming backend expects `id` in the form data for updates
+      requestPayload.append("id", id);
+
+      return await axios.put(SERVER_END_POINTS.BLOG_UPDATE, requestPayload);
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({
+        queryKey: [QUERY_KEY.BLOG_LISTING],
+      });
+    },
+  });
+};
+
+export const useDeleteBlog = () => {
+  const queryClient = useQueryClient();
+
+  return useMutation({
+    mutationFn: async ({ id }: TDeleteBlogPayload): Promise<ApiResponse> => {
+      // assuming backend expects `id` as a query param for delete
+      return await axios.delete(SERVER_END_POINTS.BLOG_DELETE, {
+        params: { id },
+      });
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({
+        queryKey: [QUERY_KEY.BLOG_LISTING],
+      });
+    },
+  });
+};
