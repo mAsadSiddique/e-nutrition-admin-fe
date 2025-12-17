@@ -29,13 +29,20 @@ import type { TBlog, TBlogStatus } from "@src/utils/types";
 
 // ----------------------------------------------------------------------
 
+// Helper to format status for display (capitalize first letter)
+const formatStatusForDisplay = (status: TBlogStatus | string): string => {
+  if (!status) return "—";
+  return status.charAt(0).toUpperCase() + status.slice(1).toLowerCase();
+};
+
 const getStatusColor = (status: TBlogStatus | string) => {
-  switch (status) {
-    case "Published":
+  const normalizedStatus = status?.toLowerCase();
+  switch (normalizedStatus) {
+    case "published":
       return "success";
-    case "Scheduled":
+    case "scheduled":
       return "info";
-    case "Draft":
+    case "draft":
       return "default";
     default:
       return "warning";
@@ -64,8 +71,7 @@ export const Blogging = () => {
   const isEmpty = !isLoading && !isError && blogs.length === 0;
 
   const handleEdit = (blog: TBlog) => {
-    console.log("Edit blog:", blog.id);
-    // TODO: Implement edit functionality
+    navigate("/dashboard/blogging/edit", { state: { blog } });
   };
 
   const handleDelete = (blog: TBlog) => {
@@ -254,7 +260,7 @@ export const Blogging = () => {
                           </TableCell>
                           <TableCell>
                             <Chip
-                              label={blog.category || "Uncategorized"}
+                              label={blog.categories?.length ? `Category ${blog.categories[0]}` : "Uncategorized"}
                               size="small"
                               sx={{
                                 bgcolor: "background.neutral",
@@ -265,10 +271,10 @@ export const Blogging = () => {
                           </TableCell>
                           <TableCell>
                             <Chip
-                              label={blog.status ?? "Draft"}
+                              label={formatStatusForDisplay(blog.status ?? "draft")}
                               size="small"
                               color={
-                                getStatusColor(blog.status ?? "Draft") as
+                                getStatusColor(blog.status ?? "draft") as
                                   | "success"
                                   | "warning"
                                   | "default"

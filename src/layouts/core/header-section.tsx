@@ -7,7 +7,7 @@ import Box from '@mui/material/Box';
 import AppBar from '@mui/material/AppBar';
 import Toolbar from '@mui/material/Toolbar';
 import Container from '@mui/material/Container';
-import { useTheme } from '@mui/material/styles';
+import { useTheme, alpha } from '@mui/material/styles';
 
 import { bgBlur, varAlpha } from '@src/theme/styles';
 
@@ -41,10 +41,17 @@ export function HeaderSection({
 
   const toolbarStyles = {
     default: {
-      ...bgBlur({ color: varAlpha(theme.vars.palette.background.defaultChannel, 0.8) }),
+      ...bgBlur({
+        color: varAlpha(theme.vars.palette.background.defaultChannel, 0.25),
+        blur: 12
+      }),
       minHeight: 'auto',
       height: 'var(--layout-header-mobile-height)',
-      transition: theme.transitions.create(['height', 'background-color'], {
+      backdropFilter: 'blur(12px) saturate(180%)',
+      WebkitBackdropFilter: 'blur(12px) saturate(180%)',
+      backgroundColor: varAlpha(theme.vars.palette.background.defaultChannel, 0.25),
+      borderBottom: `1px solid ${alpha(theme.palette.divider, 0.2)}`,
+      transition: theme.transitions.create(['height', 'background-color', 'backdrop-filter'], {
         easing: theme.transitions.easing.easeInOut,
         duration: theme.transitions.duration.shorter,
       }),
@@ -65,6 +72,7 @@ export function HeaderSection({
       sx={{
         boxShadow: 'none',
         zIndex: 'var(--layout-header-zIndex)',
+        background: 'transparent',
         ...sx,
       }}
       {...other}

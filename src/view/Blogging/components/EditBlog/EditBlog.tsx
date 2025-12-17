@@ -1,4 +1,4 @@
-import React, { useMemo, useState } from "react";
+import React, { useMemo, useState, useEffect } from "react";
 import {
   Box,
   Button,
@@ -19,27 +19,13 @@ import * as Yup from "yup";
 import { toast } from "react-toastify";
 
 import { RichTextEditor } from "@src/components/editor";
-import { useCategoryListing, useCreateBlog } from "@src/services";
+import { useCategoryListing, useUpdateBlog } from "@src/services";
 import { onError } from "@src/utils/error";
-import type { TBlogStatus, TCategory } from "@src/utils/types";
+import type { TBlogStatus, TCategory, TBlog } from "@src/utils/types";
+import type { BlogPreviewData } from "../CreateBlog";
 
-export type BlogPreviewData = {
-  title: string;
-  subheading?: string;
-  slug: string;
-  category: string;
-  status: TBlogStatus;
-  excerpt: string;
-  content: string;
-  tags: string[];
-  coverImageUrl: string | null;
-  galleryImageUrls: string[];
-  isFeatured: boolean;
-  readingTime: number | null;
-  publishedAt: string | null;
-};
-
-type CreateBlogFormProps = {
+type EditBlogFormProps = {
+  blog: TBlog;
   onCancel?: () => void;
   onSuccess?: () => void;
   onPreview?: (payload: BlogPreviewData) => void;
@@ -130,31 +116,39 @@ const validationSchema = Yup.object<BlogFormValues>({
     }),
 });
 
-export const CreateBlogForm: React.FC<CreateBlogFormProps> = ({ onCancel, onSuccess, onPreview }) => {
+export const EditBlogForm: React.FC<EditBlogFormProps> = ({ blog, onCancel, onSuccess, onPreview }) => {
   const [isSlugDirty, setIsSlugDirty] = useState(false);
 
   const { data: categoriesData, isLoading: isLoadingCategories } = useCategoryListing();
   const categoryOptions: TCategory[] = categoriesData?.categories ?? [];
+  console.log('categoriesData: ', blog, categoriesData)
+  const { mutateAsync: updateBlog, isPending } = useUpdateBlog();
 
-  const { mutateAsync: createBlog, isPending } = useCreateBlog();
+  // Find the category ID from the blog's category name
+  const initialCategoryId = useMemo(() => {
+    if (!blog.categories) return "";
+    console.log('blog: ', blog.categories)
+    const foundCategory = categoryOptions.find((cat) => cat.id === blog.categories[0]);
+    return foundCategory ? String(foundCategory.id) : "";
+  }, [blog.categories, categoryOptions]);
 
   const formik = useFormik<BlogFormValues>({
     initialValues: {
-      title: "",
-      subheading: "",
-      slug: "",
-      category: "",
-      status: "draft",
-      excerpt: "",
-      content: "",
-      tagsInput: "",
-      isFeatured: false,
-      readingTime: "",
-      publishedAt: "",
+      title: blog.title || "",
+      subheading: blog.subheading || "",
+      slug: blog.slug || "",
+      category: initialCategoryId,
+      status: blog.status || "draft",
+      excerpt: blog.excerpt || "",
+      content: blog.content || "",
+      tagsInput: blog.tags?.join(", ") || "",
+      isFeatured: blog.isFeatured || false,
+      readingTime: blog.readingTime ? String(blog.readingTime) : "",
+      publishedAt: blog.publishedAt || "",
     },
     validationSchema,
-    enableReinitialize: false,
-    onSubmit: async (values, { resetForm }) => {
+    enableReinitialize: true,
+    onSubmit: async (values) => {
       const tags = values.tagsInput
         .split(",")
         .map((tag) => tag.trim())
@@ -165,6 +159,7 @@ export const CreateBlogForm: React.FC<CreateBlogFormProps> = ({ onCancel, onSucc
       const categoryIds = selectedCategory ? [Number(selectedCategory.id)] : [];
 
       const payload = {
+        id: blog.id,
         title: values.title.trim(),
         subheading: values.subheading.trim() || undefined,
         slug: values.slug.trim(),
@@ -179,17 +174,22 @@ export const CreateBlogForm: React.FC<CreateBlogFormProps> = ({ onCancel, onSucc
         publishedAt: values.publishedAt || null,
       };
 
-      await createBlog(payload, {
+      await updateBlog(payload, {
         onSuccess: (response) => {
-          toast.success(response?.message ?? "Blog post created successfully");
-          resetForm();
-          setIsSlugDirty(false);
+          toast.success(response?.message ?? "Blog post updated successfully");
           onSuccess?.();
         },
         onError,
       });
     },
   });
+
+  // Update form when category options are loaded
+  useEffect(() => {
+    if (initialCategoryId && !formik.values.category && categoryOptions.length > 0) {
+      formik.setFieldValue("category", initialCategoryId);
+    }
+  }, [initialCategoryId, categoryOptions.length]);
 
   const tagsPreview = useMemo(() => {
     return formik.values.tagsInput
@@ -238,14 +238,11 @@ export const CreateBlogForm: React.FC<CreateBlogFormProps> = ({ onCancel, onSucc
       .map((tag) => tag.trim())
       .filter(Boolean);
 
-    const selectedCategory = categoryOptions.find((cat) => String(cat.id) === formik.values.category);
-    const categoryName = selectedCategory?.name ?? formik.values.category.trim();
-
     onPreview?.({
       title: formik.values.title.trim(),
       subheading: formik.values.subheading.trim() || undefined,
       slug: formik.values.slug.trim(),
-      category: categoryName,
+      category: formik.values.category.trim(),
       status: formik.values.status,
       excerpt: formik.values.excerpt.trim(),
       content: formik.values.content,
@@ -265,10 +262,7 @@ export const CreateBlogForm: React.FC<CreateBlogFormProps> = ({ onCancel, onSucc
           <Stack spacing={2}>
             <Typography variant="h6">Primary Details</Typography>
             <Stack spacing={3}>
-              <Stack
-                direction={{ xs: "column", md: "row" }}
-                spacing={2}
-              >
+              <Stack direction={{ xs: "column", md: "row" }} spacing={2}>
                 <TextField
                   label="Title"
                   name="title"
@@ -293,8 +287,8 @@ export const CreateBlogForm: React.FC<CreateBlogFormProps> = ({ onCancel, onSucc
                     formik.touched.category && formik.errors.category
                       ? formik.errors.category
                       : isLoadingCategories
-                      ? "Loading categories..."
-                      : "Choose a category from your categories module."
+                        ? "Loading categories..."
+                        : "Choose a category from your categories module."
                   }
                   fullWidth
                   required
@@ -308,10 +302,7 @@ export const CreateBlogForm: React.FC<CreateBlogFormProps> = ({ onCancel, onSucc
                 </TextField>
               </Stack>
 
-              <Stack
-                direction={{ xs: "column", md: "row" }}
-                spacing={2}
-              >
+              <Stack direction={{ xs: "column", md: "row" }} spacing={2}>
                 <TextField
                   label="Subheading"
                   name="subheading"
@@ -506,7 +497,7 @@ export const CreateBlogForm: React.FC<CreateBlogFormProps> = ({ onCancel, onSucc
             startIcon={isPending ? <CircularProgress size={18} color="inherit" /> : null}
             sx={{ minWidth: 160 }}
           >
-            {isPending ? "Creating..." : "Create Post"}
+            {isPending ? "Updating..." : "Update Post"}
           </Button>
         </Stack>
       </Box>

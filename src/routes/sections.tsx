@@ -26,6 +26,7 @@ const Admins = lazy(() => import('@src/view').then(module => ({ default: module.
 const Categories = lazy(() => import('@src/view').then(module => ({ default: module.Categories })));
 const Blogging = lazy(() => import('@src/view').then(module => ({ default: module.Blogging })));
 const BlogCreateView = lazy(() => import('@src/view').then(module => ({ default: module.BlogCreateView })));
+const BlogEditView = lazy(() => import('@src/view').then(module => ({ default: module.BlogEditView })));
 const Profile = lazy(() => import('@src/view').then(module => ({ default: module.Profile })));
 const ChangePassword = lazy(() => import('@src/view').then(module => ({ default: module.ChangePasswordPage })));
 
@@ -136,6 +137,10 @@ export function Router() {
         {
           path: 'blogging/create',
           element: <BlogCreateView />,
+        },
+        {
+          path: 'blogging/edit',
+          element: <BlogEditView />,
         },
       ],
     },

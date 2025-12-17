@@ -1,11 +1,11 @@
-export type TBlogStatus = "Draft" | "Published" | "Scheduled";
+export type TBlogStatus = "draft" | "published" | "scheduled";
 
 export type TBlog = {
   id: string;
   title: string;
   slug: string;
   subheading?: string;
-  category?: string;
+  categories: number[];
   status: TBlogStatus;
   author?: string;
   excerpt?: string;
@@ -53,5 +53,3 @@ export type TUpdateBlogPayload = TCreateBlogPayload & {
 export type TDeleteBlogPayload = {
   id: string;
 };
-
-

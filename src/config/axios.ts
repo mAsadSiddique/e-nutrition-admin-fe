@@ -7,7 +7,7 @@ import { createQueryClient } from "./react-query";
 // const BASE_URL = "https://suborbital-quadricipital-harley.ngrok-free.dev/";
 
 export const axios: AxiosInstance = Axios.create({
-  baseURL: "https://36b79861cc8e.ngrok-free.app/",
+  baseURL: "https://1c447384c1eb.ngrok-free.app/",
   headers: {
     Accept: "application/content",
     "ngrok-skip-browser-warning": "true",
