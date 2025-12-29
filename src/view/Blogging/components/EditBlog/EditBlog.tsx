@@ -23,6 +23,7 @@ import { useCategoryListing, useUpdateBlog } from "@src/services";
 import { onError } from "@src/utils/error";
 import type { TBlogStatus, TCategory, TBlog } from "@src/utils/types";
 import type { BlogPreviewData } from "../CreateBlog";
+import { replaceImagePlaceholdersWithUrls } from "@src/utils/blog-content";
 
 type EditBlogFormProps = {
   blog: TBlog;
@@ -132,6 +133,12 @@ export const EditBlogForm: React.FC<EditBlogFormProps> = ({ blog, onCancel, onSu
     return foundCategory ? String(foundCategory.id) : "";
   }, [blog.categories, categoryOptions]);
 
+  // Process content to replace image placeholders with URLs from media when loading
+  const processedContent = useMemo(() => {
+    if (!blog.content) return "";
+    return replaceImagePlaceholdersWithUrls(blog.content, blog.media);
+  }, [blog.content, blog.media]);
+
   const formik = useFormik<BlogFormValues>({
     initialValues: {
       title: blog.title || "",
@@ -140,7 +147,7 @@ export const EditBlogForm: React.FC<EditBlogFormProps> = ({ blog, onCancel, onSu
       category: initialCategoryId,
       status: blog.status || "draft",
       excerpt: blog.excerpt || "",
-      content: blog.content || "",
+      content: processedContent, // Use processed content with image URLs
       tagsInput: blog.tags?.join(", ") || "",
       isFeatured: blog.isFeatured || false,
       readingTime: blog.readingTime ? String(blog.readingTime) : "",

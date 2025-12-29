@@ -1,5 +1,9 @@
 export type TBlogStatus = "draft" | "published" | "scheduled";
 
+export type TBlogMedia = {
+  images?: Record<string, string>; // Key format: "1_1767029410285image-1.jpeg" -> URL
+};
+
 export type TBlog = {
   id: string;
   title: string;
@@ -20,6 +24,8 @@ export type TBlog = {
   createdAt: string;
   publishedAt?: string | null;
   updatedAt?: string;
+  media?: TBlogMedia;
+  mediaExpiredAt?: number;
 };
 
 export type TBlogListResponse = {
@@ -41,6 +47,8 @@ export type TCreateBlogPayload = {
   content: string;
   coverImage?: File | null;
   galleryImages?: File[];
+  // Images extracted from content with their IDs (1, 2, 3, etc.)
+  contentImages?: Map<number, File>;
   isFeatured?: boolean;
   readingTime?: number | null;
   publishedAt?: string | null;

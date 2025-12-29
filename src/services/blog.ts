@@ -61,6 +61,14 @@ const createBlogFormData = (payload: TCreateBlogPayload) => {
     });
   }
 
+  // Append content images with their IDs (1, 2, 3, etc.)
+  if (payload.contentImages && payload.contentImages.size > 0) {
+    payload.contentImages.forEach((imageFile, imageId) => {
+      // Append as "1", "2", "3", etc. with the binary data
+      formData.append(String(imageId), imageFile);
+    });
+  }
+
   return formData;
 };
 

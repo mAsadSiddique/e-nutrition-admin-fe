@@ -22,6 +22,7 @@ import { RichTextEditor } from "@src/components/editor";
 import { useCategoryListing, useCreateBlog } from "@src/services";
 import { onError } from "@src/utils/error";
 import type { TBlogStatus, TCategory } from "@src/utils/types";
+import { extractAndProcessImages } from "@src/utils/blog-content";
 
 export type BlogPreviewData = {
   title: string;
@@ -164,6 +165,9 @@ export const CreateBlogForm: React.FC<CreateBlogFormProps> = ({ onCancel, onSucc
       const categoryName = selectedCategory?.name ?? values.category.trim();
       const categoryIds = selectedCategory ? [Number(selectedCategory.id)] : [];
 
+      // Extract and process images from content
+      const { processedContent, images } = extractAndProcessImages(values.content);
+
       const payload = {
         title: values.title.trim(),
         subheading: values.subheading.trim() || undefined,
@@ -172,8 +176,9 @@ export const CreateBlogForm: React.FC<CreateBlogFormProps> = ({ onCancel, onSucc
         categoryIds,
         status: values.status,
         excerpt: values.excerpt.trim(),
-        content: values.content,
+        content: processedContent, // Use processed content with image placeholders
         tags,
+        contentImages: images.size > 0 ? images : undefined, // Include images map if any images found
         isFeatured: values.isFeatured,
         readingTime: values.readingTime ? Number(values.readingTime) : null,
         publishedAt: values.publishedAt || null,

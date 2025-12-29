@@ -1,4 +1,4 @@
-import { useMemo } from "react";
+import { useMemo, useState } from "react";
 
 import dayjs from "dayjs";
 
@@ -20,12 +20,15 @@ import Tooltip from "@mui/material/Tooltip";
 import Typography from "@mui/material/Typography";
 
 import { useNavigate } from "react-router-dom";
+import { toast } from "react-toastify";
 
 import { Iconify } from "@src/components/iconify";
 import { Scrollbar } from "@src/components/scrollbar";
 import { DashboardContent } from "@src/layouts/dashboard/main";
 import { useBlogListing, useDeleteBlog } from "@src/services";
 import type { TBlog, TBlogStatus } from "@src/utils/types";
+import { ConfirmDialog } from "@src/components/elements";
+import { onError } from "@src/utils/error";
 
 // ----------------------------------------------------------------------
 
@@ -66,6 +69,9 @@ export const Blogging = () => {
 
   const { mutateAsync: deleteBlog, isPending: isDeleting } = useDeleteBlog();
 
+  const [isRemoveBlogOpen, setIsRemoveBlogOpen] = useState(false);
+  const [selectedBlog, setSelectedBlog] = useState<TBlog | null>(null);
+
   const blogs = useMemo(() => data?.blogs ?? [], [data]);
   const totalCount = data?.count ?? blogs.length;
   const isEmpty = !isLoading && !isError && blogs.length === 0;
@@ -75,18 +81,28 @@ export const Blogging = () => {
   };
 
   const handleDelete = (blog: TBlog) => {
-    if (!blog.id) return;
+    setSelectedBlog(blog);
+    setIsRemoveBlogOpen(true);
+  };
 
-    const confirmed = window.confirm("Are you sure you want to delete this blog post?");
-    if (!confirmed) return;
+  const handleCloseRemoveBlog = () => {
+    setIsRemoveBlogOpen(false);
+    setSelectedBlog(null);
+  };
 
-    void deleteBlog(
-      { id: blog.id },
+  const handleConfirmRemove = async () => {
+    if (!selectedBlog?.id) {
+      return;
+    }
+
+    await deleteBlog(
+      { id: selectedBlog.id },
       {
-        onError: () => {
-          // eslint-disable-next-line no-console
-          console.error("Failed to delete blog", blog.id);
+        onSuccess: (data) => {
+          toast.success(data.message || "Blog deleted successfully");
+          handleCloseRemoveBlog();
         },
+        onError,
       }
     );
   };
@@ -98,6 +114,16 @@ export const Blogging = () => {
 
   return (
     <DashboardContent>
+      <ConfirmDialog
+        title="Delete Blog Post"
+        description={`Are you sure you want to delete "${selectedBlog?.title ?? 'this blog post'}"? This action cannot be undone.`}
+        confirmText="Delete"
+        confirmColor="error"
+        open={isRemoveBlogOpen}
+        onClose={handleCloseRemoveBlog}
+        onConfirm={handleConfirmRemove}
+        isLoading={isDeleting}
+      />
       <Box
         sx={{
           mb: 4,

@@ -82,7 +82,12 @@ export const BlogEditView = () => {
 
       <EditBlogForm blog={blog} onCancel={handleCancel} onSuccess={handleSuccess} onPreview={handlePreview} />
 
-      <BlogPreviewDialog open={isPreviewOpen} data={previewData} onClose={handleClosePreview} />
+      <BlogPreviewDialog 
+        open={isPreviewOpen} 
+        data={previewData} 
+        onClose={handleClosePreview} 
+        media={blog.media}
+      />
     </DashboardContent>
   );
 };

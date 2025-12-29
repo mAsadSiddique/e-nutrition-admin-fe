@@ -2,12 +2,9 @@ import Axios, { type AxiosInstance, type AxiosRequestConfig } from "axios";
 
 import storage from "@src/utils/storage";
 import { createQueryClient } from "./react-query";
-// import storage from "@src/utils/storage";
-
-// const BASE_URL = "https://suborbital-quadricipital-harley.ngrok-free.dev/";
 
 export const axios: AxiosInstance = Axios.create({
-  baseURL: "https://1c447384c1eb.ngrok-free.app/",
+  baseURL: import.meta.env.VITE_BASE_URL,
   headers: {
     Accept: "application/content",
     "ngrok-skip-browser-warning": "true",

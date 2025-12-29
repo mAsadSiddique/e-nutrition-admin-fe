@@ -1,4 +1,4 @@
-import React from "react";
+import React, { useMemo } from "react";
 
 import dayjs from "dayjs";
 
@@ -18,11 +18,14 @@ import {
 } from "@mui/material";
 
 import type { BlogPreviewData } from "./CreateBlog";
+import { replaceImagePlaceholdersWithUrls } from "@src/utils/blog-content";
+import type { TBlogMedia } from "@src/utils/types";
 
 type BlogPreviewDialogProps = {
   open: boolean;
   data: BlogPreviewData | null;
   onClose: () => void;
+  media?: TBlogMedia;
 };
 
 const getStatusColor = (status: BlogPreviewData["status"]) => {
@@ -37,12 +40,18 @@ const getStatusColor = (status: BlogPreviewData["status"]) => {
   }
 };
 
-export const BlogPreviewDialog: React.FC<BlogPreviewDialogProps> = ({ open, data, onClose }) => {
+export const BlogPreviewDialog: React.FC<BlogPreviewDialogProps> = ({ open, data, onClose, media }) => {
   if (!data) {
     return null;
   }
 
   const formattedPublishedAt = data.publishedAt ? dayjs(data.publishedAt).format("MMM DD, YYYY") : null;
+
+  // Process content to replace image placeholders with URLs from media
+  const processedContent = useMemo(() => {
+    if (!data.content) return "";
+    return replaceImagePlaceholdersWithUrls(data.content, media);
+  }, [data.content, media]);
 
   return (
     <Dialog open={open} onClose={onClose} fullWidth maxWidth="md" aria-labelledby="blog-preview-dialog-title">
@@ -180,7 +189,7 @@ export const BlogPreviewDialog: React.FC<BlogPreviewDialogProps> = ({ open, data
                 borderRadius: 8,
               },
             }}
-            dangerouslySetInnerHTML={{ __html: data.content }}
+            dangerouslySetInnerHTML={{ __html: processedContent }}
           />
         </Stack>
       </DialogContent>
