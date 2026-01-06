@@ -1,9 +1,8 @@
-import React, { useState } from 'react';
+import { useState } from 'react';
 import Box from '@mui/material/Box';
 import Card from '@mui/material/Card';
 import Table from '@mui/material/Table';
 import Button from '@mui/material/Button';
-import Tooltip from '@mui/material/Tooltip';
 import TableRow from '@mui/material/TableRow';
 import TableBody from '@mui/material/TableBody';
 import TableHead from '@mui/material/TableHead';
@@ -16,6 +15,7 @@ import Chip from '@mui/material/Chip';
 import Avatar from '@mui/material/Avatar';
 import Switch from '@mui/material/Switch';
 import Stack from '@mui/material/Stack';
+import Tooltip from '@mui/material/Tooltip';
 
 import { Iconify } from '@src/components/iconify';
 import { Scrollbar } from '@src/components/scrollbar';
@@ -45,17 +45,29 @@ export const AdminListing = () => {
   const { data: adminListing, isLoading, error } = useAdminListing()
   const { mutateAsync: blockUnblockAdminToggle, isPending: toggleLoading } = useBlockUnblockAdminToggle()
   const { userProfile: currentAdmin } = useProfileSelector()
-  console.log('currentAdmin: ', currentAdmin)
   const [selectedAdmin, setSelectedAdmin] = useState<TUser>({} as TUser)
-
+  console.log('currentAdmin: ', currentAdmin)
   // Safe access to adminListing data
   const safeAdminListing = adminListing?.admins || []
 
-  // Check if the selected admin is the current user
-  const isCurrentUser = (admin: TUser) => admin.id === currentAdmin?.id
+  // Check if the selected admin is the current user (using profile from store)
+  const isCurrentUser = (admin: TUser) => {
+    if (!currentAdmin?.id) return false
+    return admin.id === currentAdmin.id || admin.email === currentAdmin.email
+  }
 
-  // Handle role update with self-check
+  // Check if current user has permission to perform actions (Sub role cannot perform actions)
+  const canPerformActions = () => {
+    const userRole = currentAdmin?.role as string
+    return userRole && userRole !== 'Sub'
+  }
+
+  // Handle role update with self-check and role check
   const handleRoleUpdate = (admin: TUser) => {
+    if (!canPerformActions()) {
+      toast.warning('You do not have permission to update admin roles.')
+      return
+    }
     if (isCurrentUser(admin)) {
       toast.warning('Self role updation is not allowed.')
       return
@@ -64,8 +76,12 @@ export const AdminListing = () => {
     openAdminRole()
   }
 
-  // Handle block/unblock toggle with self-check
+  // Handle block/unblock toggle with self-check and role check
   const handleBlockUnblockToggle = (admin: TUser) => {
+    if (!canPerformActions()) {
+      toast.warning('You do not have permission to block/unblock admins.')
+      return
+    }
     if (isCurrentUser(admin)) {
       toast.warning('Self status updation is not allowed.')
       return
@@ -136,13 +152,8 @@ export const AdminListing = () => {
           <Typography variant="body2" sx={{ color: 'text.secondary' }}>
             Manage system administrators and their permissions
           </Typography>
-          <Typography variant="caption" sx={{ color: 'text.disabled', display: 'block', mt: 1 }}>
-            {isLoading
-              ? 'Loading administrators…'
-              : `Showing ${startIndex + 1} to ${Math.min(endIndex, totalAdmins)} of ${totalAdmins} administrators`}
-          </Typography>
         </Box>
-        {currentAdmin?.role === 'Super' && (
+        {currentAdmin?.role === 'Super' && canPerformActions() && (
           <Button
             variant="contained"
             startIcon={<Iconify icon="mingcute:add-line" />}
@@ -155,7 +166,7 @@ export const AdminListing = () => {
       </Box>
 
       {/* Table Section */}
-      <Card>
+      <Card sx={{ minHeight: '600px' }}>
         <Scrollbar>
           <TableContainer sx={{ overflow: 'unset' }}>
             <Table sx={{ minWidth: 960 }}>
@@ -164,21 +175,20 @@ export const AdminListing = () => {
                   <TableCell>Admin</TableCell>
                   <TableCell>Email</TableCell>
                   <TableCell width={200}>Role</TableCell>
-                  <TableCell width={120}>Status</TableCell>
+                  <TableCell width={180}>Status</TableCell>
                   <TableCell width={160}>Joined</TableCell>
                 </TableRow>
               </TableHead>
               <TableBody>
                 {isLoading
-                  ? Array.from({ length: 5 }).map((_, index) => (
-                    <TableRow key={`admin-loading-${index}`}>
-                      <TableCell colSpan={5} sx={{ py: 4 }}>
-                        <Box sx={{ display: 'flex', justifyContent: 'center' }}>
-                          <CircularProgress size={32} />
-                        </Box>
-                      </TableCell>
-                    </TableRow>
-                  ))
+                  ?
+                  <TableRow>
+                    <TableCell colSpan={5} sx={{ py: 8, textAlign: 'center' }}>
+                      <Box sx={{ display: 'flex', justifyContent: 'center', alignItems: 'center' }}>
+                        <CircularProgress size={32} />
+                      </Box>
+                    </TableCell>
+                  </TableRow>
                   : null}
 
                 {error ? (
@@ -213,7 +223,7 @@ export const AdminListing = () => {
                         <Typography variant="body2" sx={{ color: 'text.secondary', mb: 2 }}>
                           Start by adding your first administrator to manage the system.
                         </Typography>
-                        {currentAdmin?.role === 'Super' && (
+                        {currentAdmin?.role === 'Super' && canPerformActions() && (
                           <Button variant="outlined" onClick={handleOpen}>
                             Add Admin
                           </Button>
@@ -270,8 +280,8 @@ export const AdminListing = () => {
                           <Chip
                             label={getRoleDisplayName(admin.role)}
                             size="small"
-                            onDelete={() => handleRoleUpdate(admin)}
-                            deleteIcon={<Iconify icon="solar:pen-bold-duotone" />}
+                            onDelete={canPerformActions() && !isCurrentUser(admin) ? () => handleRoleUpdate(admin) : undefined}
+                            deleteIcon={canPerformActions() && !isCurrentUser(admin) ? <Iconify icon="solar:pen-bold-duotone" /> : undefined}
                             sx={{
                               backgroundColor: roleColors.bg,
                               color: roleColors.color,
@@ -288,14 +298,33 @@ export const AdminListing = () => {
                           />
                         </TableCell>
                         <TableCell>
-                          <Tooltip title={admin.isBlocked ? 'Blocked - click to activate' : 'Active - click to block'}>
-                            <Switch
-                              checked={!admin.isBlocked}
-                              onChange={() => handleBlockUnblockToggle(admin)}
-                              color="success"
-                              disabled={toggleLoading}
+                          <Stack direction="row" alignItems="center" spacing={1.5}>
+                            <Chip
+                              label={status}
+                              size="small"
+                              sx={{
+                                backgroundColor: statusColors.bg,
+                                color: statusColors.color,
+                                border: `1px solid ${statusColors.border}`,
+                                fontWeight: 600,
+                              }}
                             />
-                          </Tooltip>
+                            {!isCurrentUser(admin) && canPerformActions() ? (
+                              <Tooltip title={admin.isBlocked ? 'Click to unblock' : 'Click to block'}>
+                                <Switch
+                                  checked={!admin.isBlocked}
+                                  onChange={() => handleBlockUnblockToggle(admin)}
+                                  color="success"
+                                  disabled={toggleLoading}
+                                  size="small"
+                                />
+                              </Tooltip>
+                            ) : (
+                              <Typography variant="caption" sx={{ color: 'text.disabled' }}>
+                                {isCurrentUser(admin) ? 'N/A' : 'Restricted'}
+                              </Typography>
+                            )}
+                          </Stack>
                         </TableCell>
                         <TableCell>
                           <Typography variant="body2" sx={{ color: 'text.secondary' }}>

@@ -122,13 +122,11 @@ export const EditBlogForm: React.FC<EditBlogFormProps> = ({ blog, onCancel, onSu
 
   const { data: categoriesData, isLoading: isLoadingCategories } = useCategoryListing();
   const categoryOptions: TCategory[] = categoriesData?.categories ?? [];
-  console.log('categoriesData: ', blog, categoriesData)
   const { mutateAsync: updateBlog, isPending } = useUpdateBlog();
 
   // Find the category ID from the blog's category name
   const initialCategoryId = useMemo(() => {
     if (!blog.categories) return "";
-    console.log('blog: ', blog.categories)
     const foundCategory = categoryOptions.find((cat) => cat.id === blog.categories[0]);
     return foundCategory ? String(foundCategory.id) : "";
   }, [blog.categories, categoryOptions]);
@@ -156,7 +154,8 @@ export const EditBlogForm: React.FC<EditBlogFormProps> = ({ blog, onCancel, onSu
     validationSchema,
     enableReinitialize: true,
     onSubmit: async (values) => {
-      const tags = values.tagsInput
+      // Process tags: split by comma, trim, and filter empty strings to ensure array<string> format
+      const tags: string[] = values.tagsInput
         .split(",")
         .map((tag) => tag.trim())
         .filter(Boolean);

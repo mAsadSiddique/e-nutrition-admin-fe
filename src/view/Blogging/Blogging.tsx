@@ -29,6 +29,8 @@ import { useBlogListing, useDeleteBlog } from "@src/services";
 import type { TBlog, TBlogStatus } from "@src/utils/types";
 import { ConfirmDialog } from "@src/components/elements";
 import { onError } from "@src/utils/error";
+import { usePagination } from "@src/hooks";
+import { Pagination } from "@src/components/ui";
 
 // ----------------------------------------------------------------------
 
@@ -75,6 +77,25 @@ export const Blogging = () => {
   const blogs = useMemo(() => data?.blogs ?? [], [data]);
   const totalCount = data?.count ?? blogs.length;
   const isEmpty = !isLoading && !isError && blogs.length === 0;
+
+  // Use pagination hook
+  const {
+    paginatedData: paginatedBlogs,
+    totalItems: totalBlogs,
+    totalPages,
+    page,
+    rowsPerPage,
+    rowsPerPageOptions,
+    startIndex,
+    endIndex,
+    setPage,
+    setRowsPerPage
+  } = usePagination({
+    data: blogs,
+    initialPage: 1,
+    initialRowsPerPage: 10,
+    rowsPerPageOptions: [5, 10, 25, 50]
+  });
 
   const handleEdit = (blog: TBlog) => {
     navigate("/dashboard/blogging/edit", { state: { blog } });
@@ -155,7 +176,7 @@ export const Blogging = () => {
         </Button>
       </Box>
 
-      <Card>
+      <Card sx={{ minHeight: '600px' }}>
         <Scrollbar>
           <TableContainer sx={{ overflow: "unset" }}>
             <Table sx={{ minWidth: 1200 }}>
@@ -180,15 +201,15 @@ export const Blogging = () => {
               </TableHead>
               <TableBody>
                 {isLoading
-                  ? Array.from({ length: 5 }).map((_, index) => (
-                      <TableRow key={index}>
-                        <TableCell colSpan={9} sx={{ py: 4 }}>
-                          <Box sx={{ display: "flex", justifyContent: "center" }}>
+                  ? (
+                      <TableRow>
+                        <TableCell colSpan={9} sx={{ py: 8, textAlign: "center" }}>
+                          <Box sx={{ display: "flex", justifyContent: "center", alignItems: "center" }}>
                             <CircularProgress size={32} />
                           </Box>
                         </TableCell>
                       </TableRow>
-                    ))
+                    )
                   : null}
 
                 {isError ? (
@@ -232,7 +253,7 @@ export const Blogging = () => {
                 ) : null}
 
                 {!isLoading && !isError
-                  ? blogs.map((blog, index) => {
+                  ? paginatedBlogs.map((blog, index) => {
                       const authorName = blog.author ?? "—";
                       const avatarLabel = authorName.charAt(0).toUpperCase();
 
@@ -367,6 +388,29 @@ export const Blogging = () => {
         </Scrollbar>
       </Card>
 
+      {/* Pagination */}
+      {!isEmpty && !isLoading && !isError && (
+        <Box sx={{ mt: 3 }}>
+          <Pagination
+            page={page}
+            rowsPerPage={rowsPerPage}
+            totalItems={totalBlogs}
+            totalPages={totalPages}
+            rowsPerPageOptions={rowsPerPageOptions}
+            startIndex={startIndex}
+            endIndex={endIndex}
+            onPageChange={setPage}
+            onRowsPerPageChange={setRowsPerPage}
+            showRowsPerPage={true}
+            showPageInfo={true}
+            showFirstLastButtons={true}
+            size="medium"
+            variant="text"
+            shape="rounded"
+            color="primary"
+          />
+        </Box>
+      )}
     </DashboardContent>
   );
 };

@@ -25,6 +25,8 @@ import { UpdateCategory } from './components/UpdateCategory';
 import { ConfirmDialog } from '@src/components/elements';
 import { toast } from 'react-toastify';
 import { onError } from '@src/utils/error';
+import { usePagination } from '@src/hooks';
+import { Pagination } from '@src/components/ui';
 
 // ----------------------------------------------------------------------
 
@@ -181,6 +183,25 @@ export const Categories = () => {
         });
     }, [tableRows, expandedCategories]);
 
+    // Use pagination hook
+    const {
+        paginatedData: paginatedRows,
+        totalItems: totalCategories,
+        totalPages,
+        page,
+        rowsPerPage,
+        rowsPerPageOptions,
+        startIndex,
+        endIndex,
+        setPage,
+        setRowsPerPage
+    } = usePagination({
+        data: visibleRows,
+        initialPage: 1,
+        initialRowsPerPage: 10,
+        rowsPerPageOptions: [5, 10, 25, 50]
+    });
+
     return (
         <DashboardContent>
             <AddCategory open={isAddCategoryOpen} onClose={handleCloseAddCategory} parentCategory={null} />
@@ -233,7 +254,7 @@ export const Categories = () => {
             </Box>
 
             {/* Table Section */}
-            <Card>
+            <Card sx={{ minHeight: '600px' }}>
                 <Scrollbar>
                     <TableContainer sx={{ overflow: 'unset' }}>
                         <Table sx={{ minWidth: 960 }}>
@@ -250,15 +271,15 @@ export const Categories = () => {
                             </TableHead>
                             <TableBody>
                                 {isLoading
-                                    ? Array.from({ length: 5 }).map((_, index) => (
-                                        <TableRow key={`category-loading-${index}`}>
-                                            <TableCell colSpan={5} sx={{ py: 4 }}>
-                                                <Box sx={{ display: 'flex', justifyContent: 'center' }}>
-                                                    <CircularProgress size={32} />
-                                                </Box>
-                                            </TableCell>
-                                        </TableRow>
-                                    ))
+                                    ?
+                                    <TableRow>
+                                        <TableCell colSpan={5} sx={{ py: 4 }}>
+                                            <Box sx={{ display: 'flex', justifyContent: 'center' }}>
+                                                <CircularProgress size={32} />
+                                            </Box>
+                                        </TableCell>
+                                    </TableRow>
+
                                     : null}
 
                                 {isError ? (
@@ -302,7 +323,7 @@ export const Categories = () => {
                                 ) : null}
 
                                 {!isLoading && !isError
-                                    ? visibleRows.map((row, index) => {
+                                    ? paginatedRows.map((row, index) => {
                                         const identifier = `${row.id}-${index}`;
                                         const isExpanded = expandedCategories.has(row.id);
                                         const hasChildren = row.childrenCount > 0;
@@ -480,6 +501,30 @@ export const Categories = () => {
                     </TableContainer>
                 </Scrollbar>
             </Card>
+
+            {/* Pagination */}
+            {!isEmpty && !isLoading && !isError && (
+                <Box sx={{ mt: 3 }}>
+                    <Pagination
+                        page={page}
+                        rowsPerPage={rowsPerPage}
+                        totalItems={totalCategories}
+                        totalPages={totalPages}
+                        rowsPerPageOptions={rowsPerPageOptions}
+                        startIndex={startIndex}
+                        endIndex={endIndex}
+                        onPageChange={setPage}
+                        onRowsPerPageChange={setRowsPerPage}
+                        showRowsPerPage={true}
+                        showPageInfo={true}
+                        showFirstLastButtons={true}
+                        size="medium"
+                        variant="text"
+                        shape="rounded"
+                        color="primary"
+                    />
+                </Box>
+            )}
         </DashboardContent>
     );
 };

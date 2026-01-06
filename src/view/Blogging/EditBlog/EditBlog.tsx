@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import { useState } from "react";
 
 import ArrowBackRoundedIcon from "@mui/icons-material/ArrowBackRounded";
 import Box from "@mui/material/Box";
@@ -82,10 +82,10 @@ export const BlogEditView = () => {
 
       <EditBlogForm blog={blog} onCancel={handleCancel} onSuccess={handleSuccess} onPreview={handlePreview} />
 
-      <BlogPreviewDialog 
-        open={isPreviewOpen} 
-        data={previewData} 
-        onClose={handleClosePreview} 
+      <BlogPreviewDialog
+        open={isPreviewOpen}
+        data={previewData}
+        onClose={handleClosePreview}
         media={blog.media}
       />
     </DashboardContent>

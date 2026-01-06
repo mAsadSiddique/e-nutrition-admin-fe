@@ -7,9 +7,9 @@ import {
     DialogActions,
     DialogContent,
     DialogTitle,
-    Grid,
     TextField,
     Typography,
+    Box,
 } from '@mui/material';
 import { useFormik } from 'formik';
 import * as Yup from 'yup';
@@ -34,7 +34,7 @@ export const UpdateCategory: React.FC<UpdateCategoryProps> = ({ open, onClose, c
 
     const initialValues = useMemo<TUpdateCategoryPayload>(
         () => ({
-            id: category?.id ?? '',
+            id: category?.id ?? ('' as number | string),
             name: category?.name ?? '',
         }),
         [category]
@@ -45,9 +45,16 @@ export const UpdateCategory: React.FC<UpdateCategoryProps> = ({ open, onClose, c
         enableReinitialize: true,
         validationSchema,
         onSubmit: async (values) => {
+            // Guard against null category or missing id
+            if (!category || !values.id) {
+                toast.error('Category information is missing');
+                return;
+            }
+
             await updateCategory(values, {
                 onSuccess: (data) => {
                     toast.success(data.message);
+                    formik.resetForm();
                     onClose();
                 },
                 onError,
@@ -73,22 +80,20 @@ export const UpdateCategory: React.FC<UpdateCategoryProps> = ({ open, onClose, c
 
             <form onSubmit={formik.handleSubmit} noValidate>
                 <DialogContent>
-                    <Grid container spacing={2}>
-                        <Grid item xs={12}>
-                            <TextField
-                                required
-                                fullWidth
-                                variant="outlined"
-                                label="Category Name"
-                                name="name"
-                                value={formik.values.name}
-                                onChange={formik.handleChange}
-                                onBlur={formik.handleBlur}
-                                error={formik.touched.name && Boolean(formik.errors.name)}
-                                helperText={formik.touched.name && formik.errors.name}
-                            />
-                        </Grid>
-                    </Grid>
+                    <Box sx={{ pt: 1 }}>
+                        <TextField
+                            required
+                            fullWidth
+                            variant="outlined"
+                            label="Category Name"
+                            name="name"
+                            value={formik.values.name}
+                            onChange={formik.handleChange}
+                            onBlur={formik.handleBlur}
+                            error={formik.touched.name && Boolean(formik.errors.name)}
+                            helperText={formik.touched.name && formik.errors.name}
+                        />
+                    </Box>
                 </DialogContent>
 
                 <DialogActions sx={{ px: 3, pb: 2 }}>

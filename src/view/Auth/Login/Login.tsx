@@ -54,7 +54,7 @@ export function SignInView() {
                     storage.setToken(data?.data?.jwtToken)
                     onSetProfile(data?.data?.user)
                     toast.success('Logged in successfully')
-                    router.push(StaticRoutes.CATEGORIES_LISTING)
+                    router.push(StaticRoutes.ADMIN_LISTING)
                     resetForm()
                 },
                 onError

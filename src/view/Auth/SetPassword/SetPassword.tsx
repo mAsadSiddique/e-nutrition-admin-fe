@@ -13,6 +13,7 @@ import Typography from '@mui/material/Typography';
 
 import { RouterLink } from '@src/routes/components';
 import { useResetPassword } from '@src/services/profile';
+import { useRouter } from '@src/routes/hooks';
 
 // ----------------------------------------------------------------------
 
@@ -21,7 +22,7 @@ const setPasswordValidationSchema = Yup.object({
   code: Yup.string().required('Reset code is required'),
   password: Yup.string().min(8, 'Password must be at least 8 characters').required('Password is required'),
   confirmPassword: Yup.string()
-    .oneOf([Yup.ref('password'), null], 'Passwords must match')
+    .oneOf([Yup.ref('password')], 'Passwords must match')
     .required('Confirm password is required'),
 });
 
@@ -74,7 +75,8 @@ const getSetPasswordErrorMessage = (error: unknown): string => {
 };
 
 export function SetPasswordView() {
-  const resetPasswordMutation = useResetPassword();
+  const router = useRouter();
+  const { mutateAsync: resetPassword, isPending, reset } = useResetPassword();
 
   const formik = useFormik<{
     email: string;
@@ -91,14 +93,18 @@ export function SetPasswordView() {
     validationSchema: setPasswordValidationSchema,
     onSubmit: async (values, helpers) => {
       helpers.setStatus(undefined);
-      resetPasswordMutation.reset();
+      reset();
 
       try {
-        const response = (await resetPasswordMutation.mutateAsync(values)) as ResetPasswordResponse;
+        const response = (await resetPassword(values)) as ResetPasswordResponse;
         const successMessage = getSetPasswordSuccessMessage(response) ?? DEFAULT_SET_PASSWORD_SUCCESS;
 
         helpers.setStatus({ severity: 'success', message: successMessage });
         helpers.resetForm();
+        
+
+          router.replace('/login');
+
       } catch (error) {
         helpers.setStatus({ severity: 'error', message: getSetPasswordErrorMessage(error) });
       } finally {
@@ -118,7 +124,7 @@ export function SetPasswordView() {
     status,
   } = formik;
 
-  const isLoading = isSubmitting || resetPasswordMutation.isPending;
+  const isLoading = isSubmitting || isPending;
   const alertStatus = (status as SetPasswordStatus | undefined) ?? undefined;
 
   return (

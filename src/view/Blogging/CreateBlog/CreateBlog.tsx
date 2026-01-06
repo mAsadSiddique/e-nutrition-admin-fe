@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import { useState } from "react";
 
 import ArrowBackRoundedIcon from "@mui/icons-material/ArrowBackRounded";
 import Box from "@mui/material/Box";
@@ -16,7 +16,7 @@ export const BlogCreateView = () => {
   const navigate = useNavigate();
   const [previewData, setPreviewData] = useState<BlogPreviewData | null>(null);
   const [isPreviewOpen, setIsPreviewOpen] = useState(false);
-  console.log('previewData: ', previewData?.content)
+
   const handleCancel = () => {
     navigate(-1);
   };

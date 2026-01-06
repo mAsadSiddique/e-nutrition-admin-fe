@@ -28,7 +28,7 @@ export const useForgotPassword = () => {
 export const useResetPassword = () => {
   return useMutation({
     mutationFn: async (payload: TResetPassword) => {
-      return await axios.post(SERVER_END_POINTS.ADMIN_RESET_PASSWORD, payload);
+      return await axios.put(SERVER_END_POINTS.ADMIN_RESET_PASSWORD, payload);
     },
   });
 };

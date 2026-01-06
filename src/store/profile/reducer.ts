@@ -1,7 +1,7 @@
 import { createReducer } from "@reduxjs/toolkit";
-import { TProfileState } from "./type";
 import { setUserProfile } from "./action";
 import type { TUser } from "@src/utils/types";
+import type { TProfileState } from "./type";
 
 const initialState: TProfileState = { userProfile: {} as TUser };
 

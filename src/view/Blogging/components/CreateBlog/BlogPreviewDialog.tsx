@@ -1,4 +1,4 @@
-import React, { useMemo } from "react";
+import { useMemo, type FC } from "react";
 
 import dayjs from "dayjs";
 
@@ -29,18 +29,23 @@ type BlogPreviewDialogProps = {
 };
 
 const getStatusColor = (status: BlogPreviewData["status"]) => {
-  switch (status) {
-    case "Published":
+  switch (status?.toLowerCase()) {
+    case "published":
       return "success";
-    case "Scheduled":
+    case "scheduled":
       return "info";
-    case "Draft":
+    case "draft":
     default:
       return "default";
   }
 };
 
-export const BlogPreviewDialog: React.FC<BlogPreviewDialogProps> = ({ open, data, onClose, media }) => {
+const formatStatusForDisplay = (status: BlogPreviewData["status"]) => {
+  if (!status) return "Draft";
+  return status.charAt(0).toUpperCase() + status.slice(1).toLowerCase();
+};
+
+export const BlogPreviewDialog: FC<BlogPreviewDialogProps> = ({ open, data, onClose, media }) => {
   if (!data) {
     return null;
   }
@@ -64,7 +69,7 @@ export const BlogPreviewDialog: React.FC<BlogPreviewDialogProps> = ({ open, data
             Preview
           </Typography>
           <Chip
-            label={data.status}
+            label={formatStatusForDisplay(data.status)}
             color={getStatusColor(data.status) as "success" | "info" | "default"}
             size="small"
             sx={{ fontWeight: 600 }}
@@ -120,7 +125,7 @@ export const BlogPreviewDialog: React.FC<BlogPreviewDialogProps> = ({ open, data
             />
           ) : null}
 
-          {data.galleryImageUrls.length > 0 ? (
+          {data.galleryImageUrls && Array.isArray(data.galleryImageUrls) && data.galleryImageUrls.length > 0 ? (
             <Stack spacing={1}>
               <Typography variant="subtitle2">Gallery</Typography>
               <Stack direction="row" spacing={1.5} flexWrap="wrap" useFlexGap>
@@ -147,7 +152,7 @@ export const BlogPreviewDialog: React.FC<BlogPreviewDialogProps> = ({ open, data
             </Stack>
           ) : null}
 
-          {data.tags.length > 0 ? (
+          {data.tags && Array.isArray(data.tags) && data.tags.length > 0 ? (
             <Stack direction="row" spacing={1} flexWrap="wrap" useFlexGap>
               {data.tags.map((tag) => (
                 <Chip key={tag} label={`#${tag}`} size="small" variant="outlined" />
@@ -173,7 +178,7 @@ export const BlogPreviewDialog: React.FC<BlogPreviewDialogProps> = ({ open, data
                 fontStyle: "italic",
               },
               "& pre": {
-                backgroundColor: (theme) => theme.palette.background.neutral,
+                backgroundColor: (theme) => theme.palette.background.default,
                 padding: 2,
                 borderRadius: 1,
                 overflowX: "auto",

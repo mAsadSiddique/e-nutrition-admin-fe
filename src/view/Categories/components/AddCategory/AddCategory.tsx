@@ -1,7 +1,7 @@
 import React, { useMemo } from 'react';
 
 import SaveIcon from '@mui/icons-material/Save';
-import { Button, Dialog, DialogActions, DialogContent, DialogTitle, Grid, TextField, Typography, Box, Chip } from '@mui/material';
+import { Button, Dialog, DialogActions, DialogContent, DialogTitle, TextField, Typography, Box, Chip } from '@mui/material';
 import { useFormik } from 'formik';
 import * as Yup from 'yup';
 
@@ -122,45 +122,41 @@ export const AddCategory: React.FC<AddCategoryProps> = ({ open, onClose, parentC
 
             <form onSubmit={formik.handleSubmit} noValidate>
                 <DialogContent>
-                    <Grid container spacing={2}>
+                    <Box sx={{ pt: 1, display: 'flex', flexDirection: 'column', gap: 2 }}>
                         {isSubcategory && (
-                            <Grid item xs={12}>
-                                <TextField
-                                    fullWidth
-                                    variant="outlined"
-                                    label="Parent Category"
-                                    value={parentCategory?.name ?? ''}
-                                    disabled
-                                    helperText={`This category will be added at level ${depthLevel + 1} in the hierarchy`}
-                                    sx={{
-                                        '& .MuiInputBase-input': {
-                                            backgroundColor: 'action.disabledBackground',
-                                        },
-                                    }}
-                                />
-                            </Grid>
-                        )}
-                        <Grid item xs={12}>
                             <TextField
-                                required
                                 fullWidth
                                 variant="outlined"
-                                label={isSubcategory 
-                                    ? depthLevel === 1 
-                                        ? 'Subcategory Name' 
-                                        : depthLevel === 2 
-                                            ? 'Sub-subcategory Name'
-                                            : 'Nested Category Name'
-                                    : 'Category Name'}
-                                name="name"
-                                value={formik.values.name}
-                                onChange={formik.handleChange}
-                                onBlur={formik.handleBlur}
-                                error={formik.touched.name && Boolean(formik.errors.name)}
-                                helperText={formik.touched.name && formik.errors.name}
+                                label="Parent Category"
+                                value={parentCategory?.name ?? ''}
+                                disabled
+                                helperText={`This category will be added at level ${depthLevel + 1} in the hierarchy`}
+                                sx={{
+                                    '& .MuiInputBase-input': {
+                                        backgroundColor: 'action.disabledBackground',
+                                    },
+                                }}
                             />
-                        </Grid>
-                    </Grid>
+                        )}
+                        <TextField
+                            required
+                            fullWidth
+                            variant="outlined"
+                            label={isSubcategory 
+                                ? depthLevel === 1 
+                                    ? 'Subcategory Name' 
+                                    : depthLevel === 2 
+                                        ? 'Sub-subcategory Name'
+                                        : 'Nested Category Name'
+                                : 'Category Name'}
+                            name="name"
+                            value={formik.values.name}
+                            onChange={formik.handleChange}
+                            onBlur={formik.handleBlur}
+                            error={formik.touched.name && Boolean(formik.errors.name)}
+                            helperText={formik.touched.name && formik.errors.name}
+                        />
+                    </Box>
                 </DialogContent>
 
                 <DialogActions sx={{ px: 3, pb: 2 }}>

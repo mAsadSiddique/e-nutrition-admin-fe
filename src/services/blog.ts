@@ -38,10 +38,11 @@ const createBlogFormData = (payload: TCreateBlogPayload) => {
     });
   }
 
-  // if (payload.tags?.length) {
-  //   // Backend expects `tags` as an array field; send a JSON array string
-  //   formData.append("tags", JSON.stringify(payload.tags));
-  // }
+  if (payload.tags?.length) {
+    // Send tags as comma-separated string for multipart/form-data
+    const tagsString = payload.tags.join(", ");
+    formData.append("tags", tagsString);
+  }
 
   if (typeof payload.isFeatured === "boolean") {
     formData.append("isFeatured", String(payload.isFeatured));

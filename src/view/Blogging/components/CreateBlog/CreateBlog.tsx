@@ -156,7 +156,8 @@ export const CreateBlogForm: React.FC<CreateBlogFormProps> = ({ onCancel, onSucc
     validationSchema,
     enableReinitialize: false,
     onSubmit: async (values, { resetForm }) => {
-      const tags = values.tagsInput
+      // Process tags: split by comma, trim, and filter empty strings to ensure array<string> format
+      const tags: string[] = values.tagsInput
         .split(",")
         .map((tag) => tag.trim())
         .filter(Boolean);
@@ -177,7 +178,7 @@ export const CreateBlogForm: React.FC<CreateBlogFormProps> = ({ onCancel, onSucc
         status: values.status,
         excerpt: values.excerpt.trim(),
         content: processedContent, // Use processed content with image placeholders
-        tags,
+        tags, // Send as array<string>
         contentImages: images.size > 0 ? images : undefined, // Include images map if any images found
         isFeatured: values.isFeatured,
         readingTime: values.readingTime ? Number(values.readingTime) : null,
@@ -298,8 +299,8 @@ export const CreateBlogForm: React.FC<CreateBlogFormProps> = ({ onCancel, onSucc
                     formik.touched.category && formik.errors.category
                       ? formik.errors.category
                       : isLoadingCategories
-                      ? "Loading categories..."
-                      : "Choose a category from your categories module."
+                        ? "Loading categories..."
+                        : "Choose a category from your categories module."
                   }
                   fullWidth
                   required

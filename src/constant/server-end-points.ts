@@ -2,7 +2,7 @@ export const SERVER_END_POINTS = {
   // auth...
   ADMIN_LOGIN: "admin/login",
   ADMIN_FORGOT_PASSWORD: "admin/forgot/password",
-  ADMIN_RESET_PASSWORD: "admin/reset/password",
+  ADMIN_RESET_PASSWORD: "admin/set/password",
   CHANGE_PASSWORD: "admin/change/password",
 
   // admin...
