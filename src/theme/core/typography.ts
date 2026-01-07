@@ -1,4 +1,5 @@
-import type { TypographyOptions } from '@mui/material/styles/createTypography';
+// @ts-ignore - TypographyOptions type may not be exported but used for internal typing
+import type { TypographyOptions } from '@mui/material/styles';
 
 import { setFont, pxToRem, responsiveFontSizes } from '../styles/utils';
 

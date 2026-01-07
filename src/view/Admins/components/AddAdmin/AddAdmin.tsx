@@ -7,7 +7,7 @@ import {
     Button,
     TextField,
     MenuItem,
-    Grid,
+    Box,
     Typography,
 } from '@mui/material';
 import { useFormik } from 'formik';
@@ -81,8 +81,8 @@ export const AddAdmin: React.FC<AddAdminModalProps> = ({ open, onClose }) => {
 
             <form onSubmit={formik.handleSubmit} noValidate>
                 <DialogContent>
-                    <Grid container spacing={2}>
-                        <Grid item xs={12} sm={6}>
+                    <Box sx={{ pt: 1, display: 'flex', flexDirection: 'column', gap: 2 }}>
+                        <Box sx={{ display: 'flex', gap: 2, flexDirection: { xs: 'column', sm: 'row' } }}>
                             <TextField
                                 fullWidth
                                 variant="outlined"
@@ -94,9 +94,7 @@ export const AddAdmin: React.FC<AddAdminModalProps> = ({ open, onClose }) => {
                                 error={formik.touched.firstName && Boolean(formik.errors.firstName)}
                                 helperText={formik.touched.firstName && formik.errors.firstName}
                             />
-                        </Grid>
 
-                        <Grid item xs={12} sm={6}>
                             <TextField
                                 fullWidth
                                 variant="outlined"
@@ -108,47 +106,43 @@ export const AddAdmin: React.FC<AddAdminModalProps> = ({ open, onClose }) => {
                                 error={formik.touched.lastName && Boolean(formik.errors.lastName)}
                                 helperText={formik.touched.lastName && formik.errors.lastName}
                             />
-                        </Grid>
+                        </Box>
 
-                        <Grid item xs={12}>
-                            <TextField
-                                fullWidth
-                                variant="outlined"
-                                label="Email Address"
-                                name="email"
-                                type="email"
-                                value={formik.values.email}
-                                onChange={formik.handleChange}
-                                onBlur={formik.handleBlur}
-                                error={formik.touched.email && Boolean(formik.errors.email)}
-                                helperText={formik.touched.email && formik.errors.email}
-                            />
-                        </Grid>
+                        <TextField
+                            fullWidth
+                            variant="outlined"
+                            label="Email Address"
+                            name="email"
+                            type="email"
+                            value={formik.values.email}
+                            onChange={formik.handleChange}
+                            onBlur={formik.handleBlur}
+                            error={formik.touched.email && Boolean(formik.errors.email)}
+                            helperText={formik.touched.email && formik.errors.email}
+                        />
 
-                        <Grid item xs={12}>
-                            <TextField
-                                select
-                                fullWidth
-                                variant="outlined"
-                                label="Select Role"
-                                name="role"
-                                value={formik.values.role}
-                                onChange={formik.handleChange}
-                                onBlur={formik.handleBlur}
-                                error={formik.touched.role && Boolean(formik.errors.role)}
-                                helperText={formik.touched.role && formik.errors.role}
-                                InputProps={{
-                                    startAdornment: <WorkOutlineIcon color="action" sx={{ mr: 1 }} />,
-                                }}
-                            >
-                                {roles.map((role) => (
-                                    <MenuItem key={role.value} value={role.value}>
-                                        {role.label}
-                                    </MenuItem>
-                                ))}
-                            </TextField>
-                        </Grid>
-                    </Grid>
+                        <TextField
+                            select
+                            fullWidth
+                            variant="outlined"
+                            label="Select Role"
+                            name="role"
+                            value={formik.values.role}
+                            onChange={formik.handleChange}
+                            onBlur={formik.handleBlur}
+                            error={formik.touched.role && Boolean(formik.errors.role)}
+                            helperText={formik.touched.role && formik.errors.role}
+                            InputProps={{
+                                startAdornment: <WorkOutlineIcon color="action" sx={{ mr: 1 }} />,
+                            }}
+                        >
+                            {roles.map((role) => (
+                                <MenuItem key={role.value} value={role.value}>
+                                    {role.label}
+                                </MenuItem>
+                            ))}
+                        </TextField>
+                    </Box>
                 </DialogContent>
 
                 <DialogActions sx={{ px: 3, pb: 2 }}>

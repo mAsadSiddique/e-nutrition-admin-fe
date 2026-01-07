@@ -21,7 +21,7 @@ import { RouterLink } from '@src/routes/components';
 import { Iconify } from '@src/components/iconify';
 import { useUserProfileHandler } from '@src/store/profile/hook';
 import { toast } from 'react-toastify';
-import { StaticRoutes, USER_TYPE } from '@src/utils/enums';
+import { StaticRoutes } from '@src/utils/enums';
 import { useRouter } from '@src/routes/hooks';
 import { onError } from '@src/utils/error';
 

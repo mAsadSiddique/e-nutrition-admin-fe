@@ -188,7 +188,7 @@ export const RichTextEditor: React.FC<RichTextEditorProps> = ({
                 editor
                   ?.chain()
                   .focus()
-                  .toggleHeading({ level: heading.level })
+                  .toggleHeading({ level: heading.level as 1 | 2 | 3 | 4 | 5 | 6 })
                   .run()
               }
               color={heading.isActive ? "primary" : "inherit"}

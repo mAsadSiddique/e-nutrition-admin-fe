@@ -83,8 +83,8 @@ export const StyledLabel = styled(Box)(({
        * @variant inverted
        */
       ...(variant === 'inverted' && {
-        color: theme.vars.palette[color].darker,
-        backgroundColor: theme.vars.palette[color].lighter,
+        color: theme.vars.palette[color].dark,
+        backgroundColor: theme.vars.palette[color].light,
       }),
     }),
   };
@@ -101,7 +101,7 @@ export const StyledLabel = styled(Box)(({
     padding: theme.spacing(0, 0.75),
     fontSize: theme.typography.pxToRem(12),
     fontWeight: theme.typography.fontWeightBold,
-    borderRadius: theme.shape.borderRadius * 0.75,
+    borderRadius: Number(theme.shape.borderRadius) * 0.75,
     transition: theme.transitions.create('all', {
       duration: theme.transitions.duration.shorter,
     }),
